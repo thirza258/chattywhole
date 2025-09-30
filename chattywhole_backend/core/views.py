@@ -3,198 +3,430 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from django.conf import settings
-import google.generativeai as genai
-from google.generativeai import types
+from google import genai
+from google.genai import types
+import logging
+logger = logging.getLogger(__name__)
 
 GEMINI_API_KEY = settings.GEMINI_API_KEY
-genai.configure(api_key=GEMINI_API_KEY)
 
 class PromptView(APIView):
-    def generate_response(self, prompt):
-        client = genai.Client(api_key=GEMINI_API_KEY)
-        model = "gemini-2.5-pro"
-        contents = [
-            types.Content(
-                role="user",
-                parts=[
-                    types.Part.from_text(text=prompt),
+    """
+    API View for generating a response to a prompt.
+    """
+
+    def generate_response(self, prompt: str) -> str:
+        """
+        Generates a response using the Gemini API.
+
+        This method encapsulates the logic for interacting with the external
+        Gemini API. It is designed to be called by the `post` method.
+        """
+        try:
+            client = genai.Client(api_key=GEMINI_API_KEY)
+            model = "gemini-2.5-flash-lite"
+            contents = [
+                genai.types.Content(
+                    role="user",
+                    parts=[
+                        genai.types.Part.from_text(text=prompt),
+                    ],
+                ),
+            ]
+            generate_content_config = genai.types.GenerateContentConfig(
+                thinking_config=genai.types.ThinkingConfig(
+                    thinking_budget=-1,
+                ),
+                response_mime_type="application/json",
+                response_schema=genai.types.Schema(
+                    type=genai.types.Type.OBJECT,
+                    required=["response"],
+                    properties={
+                        "response": genai.types.Schema(
+                            type=genai.types.Type.STRING,
+                        ),
+                    },
+                ),
+                system_instruction=[
+                    genai.types.Part.from_text(text="Answer this prompt make sure answer that"),
                 ],
-            ),
-        ]
-        generate_content_config = types.GenerateContentConfig(
-            thinking_config = types.ThinkingConfig(
-                thinking_budget=-1,
-            ),
-            response_mime_type="application/json", 
-            response_schema=genai.types.Schema(
-                type = genai.types.Type.OBJECT,
-                required = ["response"],
-                properties = {
-                    "response": genai.types.Schema(
-                        type = genai.types.Type.STRING,
-                    ),
-                },
-            ),
-            system_instruction=[
-                types.Part.from_text(text="Answer this prompt make sure answer that"),
-            ],
-        )
+            )
 
-        response = client.models.generate_content(
-            model=model,
-            contents=contents,
-            config=generate_content_config,
-        )
-        return response.text
+            response = client.models.generate_content(
+                model=model,
+                contents=contents,
+                config=generate_content_config,
+            )
+            return response.text
+        except Exception as e:
+            logger.error(f"An error occurred during Gemini API call: {e}")
+            raise
 
-    def post(self, request):
+    def post(self, request, *args, **kwargs):
+        """
+        Handles POST requests to generate a response from a prompt.
+
+        This method is responsible for request handling, validation, and
+        returning an appropriate HTTP response.
+        """
         prompt = request.data.get("prompt")
-        response = generate_response(prompt)
-        return Response(response, status=status.HTTP_200_OK)
+
+        if not prompt:
+            return Response(
+                {"error": "A 'prompt' is required in the request body."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        try:
+          
+            response_data = self.generate_response(prompt=prompt)
+            return Response({
+                "status": 200,
+                "message": "success",
+                "data": response_data
+            }, status=status.HTTP_200_OK)
+        except Exception as e:
+            return Response(
+                {"error": "An unexpected error occurred while processing your request."},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
 
 class SummarizerView(APIView):
     """
     API View for summarizing complex information into clear insights.
+    This view now leverages the robust error handling and response structure
+    from the PromptView class.
     """
-    def generate_response(self, prompt):
-        client = genai.Client(api_key=GEMINI_API_KEY)
-        model = "gemini-2.5-pro" 
-        contents = [
-            types.Content(
-                role="user",
-                parts=[
-                    types.Part.from_text(text=prompt),
+
+    def generate_response(self, prompt: str) -> str:
+        """
+        Generates a summarized response using the Gemini API.
+
+        This method encapsulates the logic for interacting with the external
+        Gemini API. It is designed to be called by the `post` method and
+        includes specific system instructions for summarization.
+        """
+        try:
+            client = genai.Client(api_key=GEMINI_API_KEY)
+            model = "gemini-2.5-flash-lite"
+            contents = [
+                genai.types.Content(
+                    role="user",
+                    parts=[
+                        genai.types.Part.from_text(text=prompt),
+                    ],
+                ),
+            ]
+            generate_content_config = genai.types.GenerateContentConfig(
+                thinking_config=genai.types.ThinkingConfig(
+                    thinking_budget=-1,
+                ),
+                response_mime_type="application/json",
+                response_schema=genai.types.Schema(
+                    type=genai.types.Type.OBJECT,
+                    required=["response"],
+                    properties={
+                        "response": genai.types.Schema(
+                            type=genai.types.Type.STRING,
+                        ),
+                    },
+                ),
+                system_instruction=[
+                    genai.types.Part.from_text(text="You are a highly skilled summarizer. Your task is to distill complex information into clear and concise insights."),
                 ],
-            ),
-        ]
-        generate_content_config = types.GenerateContentConfig(
-            system_instruction=[
-                types.Part.from_text(text="You are a highly skilled summarizer. Your task is to distill complex information into clear and concise insights."),
-            ],
-        )
+            )
 
-        response = client.models.generate_content(
-            model=model,
-            contents=contents,
-            generation_config=generate_content_config,
-        )
-        return response.text
+            response = client.models.generate_content(
+                model=model,
+                contents=contents,
+                config=generate_content_config,
+            )
+            return response.text
+        except Exception as e:
+            logger.error(f"An error occurred during Gemini API call in SummarizerView: {e}")
+            raise
 
-    def post(self, request):
+    def post(self, request, *args, **kwargs):
+        """
+        Handles POST requests to generate a summary from a prompt.
+
+        This method is responsible for request handling, validation, and
+        returning a consistent API response format.
+        """
         prompt = request.data.get("prompt")
-        if not prompt:
-            return Response({"error": "Prompt is required."}, status=status.HTTP_400_BAD_REQUEST)
-        
-        response_text = self.generate_response(prompt)
-        return Response({"summary": response_text}, status=status.HTTP_200_OK)
 
+        if not prompt:
+            return Response(
+                {"error": "A 'prompt' is required in the request body."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        try:
+            response_data = self.generate_response(prompt=prompt)
+            return Response({
+                "status": 200,
+                "message": "success",
+                "data": response_data
+            }, status=status.HTTP_200_OK)
+        except Exception as e:
+            return Response(
+                {"error": "An unexpected error occurred while processing your request."},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
 
 class TranslatorView(APIView):
     """
     API View for translating text into a preferred language.
+    This view now follows the response structure and error handling pattern
+    of the provided SummarizerView.
     """
-    def generate_response(self, prompt, target_language="English"):
-        client = genai.Client(api_key=GEMINI_API_KEY)
-        model = "gemini-2.5-pro"
-        contents = [
-            types.Content(
-                role="user",
-                parts=[
-                    types.Part.from_text(text=prompt),
+
+    def generate_response(self, prompt: str, source_language: str = "English", target_language: str = "English") -> str:
+        """
+        Generates a translated response using the Gemini API.
+
+        This method encapsulates the logic for interacting with the external
+        Gemini API, including specific system instructions for translation.
+        """
+        try:
+            client = genai.Client(api_key=GEMINI_API_KEY)
+            model = "gemini-2.5-flash-lite"
+            contents = [
+                genai.types.Content(
+                    role="user",
+                    parts=[
+                        genai.types.Part.from_text(text=prompt),
+                    ],
+                ),
+            ]
+            generate_content_config = genai.types.GenerateContentConfig(
+                thinking_config=genai.types.ThinkingConfig(
+                    thinking_budget=-1,
+                ),
+                response_mime_type="application/json",
+                response_schema=genai.types.Schema(
+                    type=genai.types.Type.OBJECT,
+                    required=["response"],
+                    properties={
+                        "response": genai.types.Schema(
+                            type=genai.types.Type.STRING,
+                        ),
+                    },
+                ),
+                system_instruction=[
+                    genai.types.Part.from_text(text=f"You are a professional translator. Translate the given text into {target_language} from {source_language}."),
                 ],
-            ),
-        ]
-        generate_content_config = types.GenerateContentConfig(
-            system_instruction=[
-                types.Part.from_text(text=f"You are a professional translator. Translate the given text into {target_language}."),
-            ],
-        )
+            )
 
-        response = client.models.generate_content(
-            model=model,
-            contents=contents,
-            generation_config=generate_content_config,
-        )
-        return response.text
+            response = client.models.generate_content(
+                model=model,
+                contents=contents,
+                config=generate_content_config,
+            )
+            return response.text
+        except Exception as e:
+            logger.error(f"An error occurred during Gemini API call in TranslatorView: {e}")
+            raise
 
-    def post(self, request):
+    def post(self, request, *args, **kwargs):
+        """
+        Handles POST requests to translate text.
+
+        Validates input, calls the translation logic, and returns a standardized API response.
+        """
         prompt = request.data.get("prompt")
         target_language = request.data.get("target_language", "English")
+        source_language = request.data.get("source_language", "English")
 
         if not prompt:
-            return Response({"error": "Prompt is required."}, status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                {"error": "Prompt is required."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
 
-        response_text = self.generate_response(prompt, target_language)
-        return Response({"translation": response_text}, status=status.HTTP_200_OK)
+        try:
+            translation_text = self.generate_response(prompt=prompt, target_language=target_language, source_language=source_language)
+            
+            return Response({
+                "status": 200,
+                "message": "success",
+                "data": translation_text
+            }, status=status.HTTP_200_OK)
+        
+        except Exception as e:
+            return Response(
+                {"error": "An unexpected error occurred while processing your request."},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
 
 class WriterView(APIView):
     """
     API View for creating original and engaging text.
+    This view now leverages robust error handling and a consistent response structure.
     """
-    def generate_response(self, prompt):
-        client = genai.Client(api_key=GEMINI_API_KEY)
-        model = "gemini-2.5-pro"
-        contents = [
-            types.Content(
-                role="user",
-                parts=[
-                    types.Part.from_text(text=prompt),
+
+    def generate_response(self, prompt: str) -> str:
+        """
+        Generates original text based on the prompt using the Gemini API.
+
+        This method encapsulates the interaction with the Gemini API, including
+        specific system instructions for writing.
+        """
+        try:
+            client = genai.Client(api_key=GEMINI_API_KEY)
+            model = "gemini-2.5-flash-lite"
+            contents = [
+                genai.types.Content(
+                    role="user",
+                    parts=[
+                        genai.types.Part.from_text(text=prompt),
+                    ],
+                ),
+            ]
+            generate_content_config = genai.types.GenerateContentConfig(
+                thinking_config=types.ThinkingConfig(
+                    thinking_budget=-1,
+                ),
+                response_mime_type="application/json",
+                response_schema=genai.types.Schema(
+                    type=genai.types.Type.OBJECT,
+                    required=["response"],
+                    properties={
+                        "response": genai.types.Schema(
+                            type=genai.types.Type.STRING,
+                        ),
+                    },
+                ),
+                system_instruction=[
+                    genai.types.Part.from_text(text="You are an expert writer. Your goal is to create original, engaging, and high-quality text based on the user's prompt."),
                 ],
-            ),
-        ]
-        generate_content_config = types.GenerateContentConfig(
-            system_instruction=[
-                types.Part.from_text(text="You are an expert writer. Your goal is to create original, engaging, and high-quality text based on the user's prompt."),
-            ],
-        )
+            )
 
-        response = client.models.generate_content(
-            model=model,
-            contents=contents,
-            generation_config=generate_content_config,
-        )
-        return response.text
+            response = client.models.generate_content(
+                model=model,
+                contents=contents,
+                config=generate_content_config,
+            )
+            return response.text
+        except Exception as e:
+           
+            logger.error(f"An error occurred during Gemini API call in WriterView: {e}")
+           
+            raise
 
-    def post(self, request):
+    def post(self, request, *args, **kwargs):
+        """
+        Handles POST requests to generate written text.
+
+        This method is responsible for request handling, validation, and
+        returning a consistent API response format.
+        """
         prompt = request.data.get("prompt")
+
         if not prompt:
-            return Response({"error": "Prompt is required."}, status=status.HTTP_400_BAD_REQUEST)
-        
-        response_text = self.generate_response(prompt)
-        return Response({"written_text": response_text}, status=status.HTTP_200_OK)
+           
+            return Response(
+                {"error": "A 'prompt' is required in the request body."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        try:
+            response_data = self.generate_response(prompt=prompt)
+           
+            return Response({
+                "status": 200,
+                "message": "success",
+                "data": {"written_text": response_data}
+            }, status=status.HTTP_200_OK)
+        except Exception as e:
+           
+            return Response(
+                {"error": "An unexpected error occurred while processing your request."},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )   
 
 class RewriterView(APIView):
     """
     API View for improving content with alternative options.
+    This view now leverages robust error handling and a consistent response structure.
     """
-    def generate_response(self, prompt):
-        client = genai.Client(api_key=GEMINI_API_KEY)
-        model = "gemini-2.5-pro"
-        contents = [
-            types.Content(
-                role="user",
-                parts=[
-                    types.Part.from_text(text=prompt),
+
+    def generate_response(self, prompt: str) -> str:
+        """
+        Generates rewritten content based on the prompt using the Gemini API.
+
+        This method encapsulates the interaction with the Gemini API, including
+        specific system instructions for rewriting.
+        """
+        try:
+            client = genai.Client(api_key=GEMINI_API_KEY)
+            model = "gemini-2.5-flash-lite"
+            contents = [
+                genai.types.Content(
+                    role="user",
+                    parts=[
+                        genai.types.Part.from_text(text=prompt),
+                    ],
+                ),
+            ]
+            generate_content_config = genai.types.GenerateContentConfig(
+                thinking_config=types.ThinkingConfig(
+                    thinking_budget=-1,
+                ),
+                response_mime_type="application/json",
+                response_schema=genai.types.Schema(
+                    type=genai.types.Type.OBJECT,
+                    required=["response"],
+                    properties={
+                        "response": genai.types.Schema(
+                            type=genai.types.Type.STRING,
+                        ),
+                    },
+                ),
+                system_instruction=[
+                    genai.types.Part.from_text(text="You are a skilled rewriter. Your task is to improve the given content by providing alternative options, enhancing clarity, and refining the language."),
                 ],
-            ),
-        ]
-        generate_content_config = types.GenerateContentConfig(
-            system_instruction=[
-                types.Part.from_text(text="You are a skilled rewriter. Your task is to improve the given content by providing alternative options, enhancing clarity, and refining the language."),
-            ],
-        )
+            )
 
-        response = client.models.generate_content(
-            model=model,
-            contents=contents,
-            generation_config=generate_content_config,
-        )
-        return response.text
+            response = client.models.generate_content(
+                model=model,
+                contents=contents,
+                config=generate_content_config,
+            )
+            return response.text
+        except Exception as e:
+           
+            logger.error(f"An error occurred during Gemini API call in RewriterView: {e}")
+           
+            raise
 
-    def post(self, request):
+    def post(self, request, *args, **kwargs):
+        """
+        Handles POST requests to generate rewritten text.
+
+        This method is responsible for request handling, validation, and
+        returning a consistent API response format.
+        """
         prompt = request.data.get("prompt")
+
         if not prompt:
-            return Response({"error": "Prompt is required."}, status=status.HTTP_400_BAD_REQUEST)
-        
-        response_text = self.generate_response(prompt)
-        return Response({"rewritten_text": response_text}, status=status.HTTP_200_OK)
+           
+            return Response(
+                {"error": "A 'prompt' is required in the request body."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        try:
+            response_data = self.generate_response(prompt=prompt)
+           
+            return Response({
+                "status": 200,
+                "message": "success",
+                "data": {"rewritten_text": response_data}
+            }, status=status.HTTP_200_OK)
+        except Exception as e:
+           
+            return Response(
+                {"error": "An unexpected error occurred while processing your request."},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
