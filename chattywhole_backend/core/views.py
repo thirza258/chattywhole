@@ -6,9 +6,43 @@ from django.conf import settings
 from google import genai
 from google.genai import types
 import logging
-logger = logging.getLogger(__name__)
 
+logger = logging.getLogger(__name__)
 GEMINI_API_KEY = settings.GEMINI_API_KEY
+
+
+class ApiKeyCheckView(APIView):
+    """
+    API View for validating the Gemini API key.
+    """
+    def get(self, request):
+        try:
+            api_key = request.headers.get('Authorization')
+            if not api_key:
+                return Response({
+                    "status": status.HTTP_401_UNAUTHORIZED,
+                    "message": "API key not provided",
+                    "data": "false"
+                })
+
+            client = genai.Client(api_key=api_key)
+            
+            model = client.get_model("gemini-2.5-flash-lite")
+            model.count_tokens("test")
+            
+            return Response({
+                "status": status.HTTP_200_OK,
+                "message": "API key is valid", 
+                "data": "true"
+            })
+            
+        except Exception as e:
+            logger.error(f"API key validation failed: {e}")
+            return Response({
+                "status": status.HTTP_401_UNAUTHORIZED,
+                "message": "Invalid API key",
+                "data": "false"
+            })
 
 class PromptView(APIView):
     """

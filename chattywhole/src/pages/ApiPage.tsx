@@ -1,4 +1,6 @@
 import React, { useState } from 'react';
+import axios from 'axios';
+import { API_URL } from '../constant';
 
 interface ApiKeyPageProps {
   onKeySubmit: () => void;
@@ -14,12 +16,21 @@ const ApiPage: React.FC<ApiKeyPageProps> = ({ onKeySubmit }) => {
       return;
     }
 
-    // Save the key to localStorage
-    localStorage.setItem('apiKey', apiKey);
-    setError('');
-    
-    // Notify the parent component that the key has been submitted
-    onKeySubmit();
+    axios.get(`${API_URL}/api-key-check`, {
+      headers: {
+        Authorization: apiKey,
+      },
+    }).then((response) => {
+    if (response.status === 200) {
+      localStorage.setItem('apiKey', apiKey);
+      setError('');
+      onKeySubmit();
+    } else {
+      setError('Invalid API Key');
+    }
+  }).catch((error) => {
+    setError('Invalid API Key + ' + error);
+  });
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -41,7 +52,7 @@ const ApiPage: React.FC<ApiKeyPageProps> = ({ onKeySubmit }) => {
           <input
             type="password"
             className="w-full border rounded-md px-4 py-2 text-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-            placeholder="sk-..."
+            placeholder="AIza..."
             value={apiKey}
             onChange={(e) => setApiKey(e.target.value)}
             onKeyDown={handleKeyDown}

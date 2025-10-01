@@ -14,15 +14,11 @@ import TranslatorPage from './pages/TranslatorPage';
 import WriterPage from './pages/WriterPage';
 
 function App() {
-  // New state to track if the API key is set
   const [hasApiKey, setHasApiKey] = useState(false);
-
   const [selectedTool, setSelectedTool] = useState("Prompt");
   const [history, setHistory] = useState([]);
 
-  // This effect runs on initial app load
   useEffect(() => {
-    // Check localStorage for the API key
     const storedKey = localStorage.getItem('apiKey');
     if (storedKey) {
       setHasApiKey(true);
@@ -33,9 +29,9 @@ function App() {
     }
   }, []);
 
-  // This effect fetches history, but only if an API key exists
+ 
   useEffect(() => {
-    if (!hasApiKey) return; // Don't fetch if there's no key
+    if (!hasApiKey) return; 
 
     const fetchHistory = async () => {
       try {
@@ -47,21 +43,17 @@ function App() {
     };
 
     fetchHistory();
-  }, [hasApiKey]); // Re-fetch history when the key is submitted
+  }, [hasApiKey]); 
 
-  // This function will be passed to ApiKeyPage
   const handleKeySubmission = () => {
     setHasApiKey(true);
   };
   
-  // This function can be used for a "Log Out" or "Clear Key" button
   const handleClearKey = () => {
     localStorage.removeItem('apiKey');
     setHasApiKey(false);
   };
 
-
-  // Helper function to render the correct page
   const renderSelectedPage = () => {
     switch (selectedTool) {
       case "Prompt": return <PromptPage />;
@@ -74,16 +66,17 @@ function App() {
     }
   };
 
-  // CONDITIONAL RENDERING:
-  // If no API key is found, render the ApiKeyPage
   if (!hasApiKey) {
     return <ApiKeyPage onKeySubmit={handleKeySubmission} />;
   }
 
-  // If an API key exists, render the main application
   return (
     <div className="h-screen flex flex-col bg-gray-100">
-      <NavBar /> 
+      <NavBar 
+        selectedTool={selectedTool} 
+        hasApiKey={hasApiKey}
+        onClearApiKey={handleClearKey}
+      /> 
       <div className="flex flex-grow overflow-hidden">
         <Sidebar 
           selectedTool={selectedTool} 

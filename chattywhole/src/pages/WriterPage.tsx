@@ -35,7 +35,7 @@ const WriterPage: React.FC = () => {
             />
           </div>
 
-          {/* Bottom Row (Result) */}
+         
           <div className="bg-white rounded-lg shadow-md flex flex-col">
             <h2 className="text-lg font-semibold text-gray-700 p-4 border-b">Result</h2>
             <div className="w-full h-full p-4">
@@ -45,12 +45,7 @@ const WriterPage: React.FC = () => {
         </div>
       </main>
 
-      {/* Footer */}
-      <footer className="bg-white mt-auto">
-        <div className="container mx-auto px-4 py-4 text-center text-gray-600">
-          <p>&copy; 2025 Your Company. All rights reserved.</p>
-        </div>
-      </footer>
+    
     </div>
   );
 };

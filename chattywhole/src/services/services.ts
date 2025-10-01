@@ -1,10 +1,12 @@
 import axios from "axios";
-
-const API_URL = "http://localhost:8000/api/v1";
-
+import { API_URL } from "../constant";
 
 const postPrompt = async (prompt: string) => {
-    const response = await axios.post(`${API_URL}/prompt`, { prompt });
+    const response = await axios.post(`${API_URL}/prompt`, { prompt }, {
+        headers: {
+            Authorization: localStorage.getItem('apiKey')
+        }
+    });
     if (response.status === 200) {
         return response.data;
     } else {
@@ -13,7 +15,11 @@ const postPrompt = async (prompt: string) => {
 }
 
 const postSummarizer = async (prompt: string) => {
-    const response = await axios.post(`${API_URL}/summarizer`, { prompt });
+    const response = await axios.post(`${API_URL}/summarizer`, { prompt }, {
+        headers: {
+            Authorization: localStorage.getItem('apiKey')
+        }
+    });
     if (response.status === 200) {
         return response.data;
     } else {
@@ -22,7 +28,11 @@ const postSummarizer = async (prompt: string) => {
 }
 
 const postTranslator = async (prompt: string, targetLanguage: string, sourceLanguage: string) => {
-    const response = await axios.post(`${API_URL}/translator`, { prompt, targetLanguage, sourceLanguage });
+    const response = await axios.post(`${API_URL}/translator`, { prompt, targetLanguage, sourceLanguage }, {
+        headers: {
+            Authorization: localStorage.getItem('apiKey')
+        }
+    });
     if (response.status === 200) {
         return response.data;
     } else {
@@ -31,7 +41,11 @@ const postTranslator = async (prompt: string, targetLanguage: string, sourceLang
 }
 
 const postWriter = async (prompt: string) => {
-    const response = await axios.post(`${API_URL}/writer`, { prompt });
+    const response = await axios.post(`${API_URL}/writer`, { prompt }, {
+        headers: {
+            Authorization: localStorage.getItem('apiKey')
+        }
+    });
     if (response.status === 200) {
         return response.data;
     } else {
@@ -40,7 +54,11 @@ const postWriter = async (prompt: string) => {
 }
 
 const postRewriter = async (prompt: string) => {
-    const response = await axios.post(`${API_URL}/rewriter`, { prompt });
+    const response = await axios.post(`${API_URL}/rewriter`, { prompt }, {
+        headers: {
+            Authorization: localStorage.getItem('apiKey')
+        }
+    });
     if (response.status === 200) {
         return response.data;
     } else {

@@ -1,7 +1,42 @@
-const NavBar: React.FC = () => {
+import React from "react";
+
+interface NavBarProps {
+  selectedTool: string;
+  hasApiKey: boolean;
+  onClearApiKey: () => void;
+}
+
+const NavBar: React.FC<NavBarProps> = ({ selectedTool, hasApiKey, onClearApiKey }) => {
   return (
     <nav className="w-full h-16 bg-gray-800 text-white flex items-center justify-between px-4 border-b-2 border-white z-10">
       <h1 className="text-lg font-bold">ChattyWhole</h1>
+      <div className="flex items-center gap-4">
+        <div className="flex gap-4">
+          <span className="font-bold text-blue-400">
+            {selectedTool} Page 
+          </span>
+        </div>
+
+        {hasApiKey ? (
+          <button
+            className="px-3 py-1 bg-red-500 hover:bg-red-600 rounded-md text-sm"
+            onClick={onClearApiKey}  // 👈 calls parent handler
+          >
+            Clear API Key
+          </button>
+        ) : (
+          <button
+            className="px-3 py-1 bg-blue-500 hover:bg-blue-600 rounded-md text-sm"
+            onClick={() => {
+              // for demo: you could open a modal/input instead
+              localStorage.setItem("apiKey", "dummy-key");
+              window.location.reload();
+            }}
+          >
+            Renew API Key
+          </button>
+        )}
+      </div>
     </nav>
   );
 };

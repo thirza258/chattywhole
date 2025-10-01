@@ -45,12 +45,7 @@ const SummarizerPage: React.FC = () => {
         </div>
       </main>
 
-      {/* Footer */}
-      <footer className="bg-white mt-auto">
-        <div className="container mx-auto px-4 py-4 text-center text-gray-600">
-          <p>&copy; 2025 Your Company. All rights reserved.</p>
-        </div>
-      </footer>
+     
     </div>
   );
 };

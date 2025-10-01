@@ -1,7 +1,6 @@
 import React from 'react';
 import ReactMarkdown from "react-markdown";
 
-// Interface corrected to match the component's needs
 interface SidebarProps {
   selectedTool: string;
   setSelectedTool: (tool: string) => void;
@@ -14,7 +13,6 @@ interface SidebarProps {
 }
 
 const Sidebar: React.FC<SidebarProps> = ({ selectedTool, setSelectedTool, history }) => {
-  // Array of tools to make it easier to manage
   const tools = [
     "Prompt",
     "Proofreader",
