@@ -1,15 +1,12 @@
-from django.shortcuts import render
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
-from django.conf import settings
 from google import genai
 from google.genai import types
 import logging
+from core.helper import strip_authentication_header
 
 logger = logging.getLogger(__name__)
-GEMINI_API_KEY = settings.GEMINI_API_KEY
-
 
 class ApiKeyCheckView(APIView):
     """
@@ -49,7 +46,7 @@ class PromptView(APIView):
     API View for generating a response to a prompt.
     """
 
-    def generate_response(self, prompt: str) -> str:
+    def generate_response(self, prompt: str, api_key: str) -> str:
         """
         Generates a response using the Gemini API.
 
@@ -57,7 +54,7 @@ class PromptView(APIView):
         Gemini API. It is designed to be called by the `post` method.
         """
         try:
-            client = genai.Client(api_key=GEMINI_API_KEY)
+            client = genai.Client(api_key=api_key)
             model = "gemini-2.5-flash-lite"
             contents = [
                 genai.types.Content(
@@ -104,19 +101,25 @@ class PromptView(APIView):
         returning an appropriate HTTP response.
         """
         prompt = request.data.get("prompt")
-
+        api_key = request.headers.get('Authorization')
+        api_key = strip_authentication_header(api_key)
         if not prompt:
             return Response(
                 {"error": "A 'prompt' is required in the request body."},
                 status=status.HTTP_400_BAD_REQUEST
             )
 
+        if not api_key:
+            return Response(
+                {"error": "Authorization header is required."},
+                status=status.HTTP_401_UNAUTHORIZED
+            )
+
         try:
-          
-            response_data = self.generate_response(prompt=prompt)
+            response_data = self.generate_response(prompt=prompt, api_key=api_key)
             return Response({
                 "status": 200,
-                "message": "success",
+                "message": "success", 
                 "data": response_data
             }, status=status.HTTP_200_OK)
         except Exception as e:
@@ -132,7 +135,7 @@ class SummarizerView(APIView):
     from the PromptView class.
     """
 
-    def generate_response(self, prompt: str) -> str:
+    def generate_response(self, prompt: str, api_key: str) -> str:
         """
         Generates a summarized response using the Gemini API.
 
@@ -141,7 +144,7 @@ class SummarizerView(APIView):
         includes specific system instructions for summarization.
         """
         try:
-            client = genai.Client(api_key=GEMINI_API_KEY)
+            client = genai.Client(api_key=api_key)
             model = "gemini-2.5-flash-lite"
             contents = [
                 genai.types.Content(
@@ -188,6 +191,13 @@ class SummarizerView(APIView):
         returning a consistent API response format.
         """
         prompt = request.data.get("prompt")
+        api_key = request.headers.get('Authorization')  
+        api_key = strip_authentication_header(api_key)
+        if not api_key:
+            return Response(
+                {"error": "Authorization header is required."},
+                status=status.HTTP_401_UNAUTHORIZED
+            )
 
         if not prompt:
             return Response(
@@ -196,7 +206,7 @@ class SummarizerView(APIView):
             )
 
         try:
-            response_data = self.generate_response(prompt=prompt)
+            response_data = self.generate_response(prompt=prompt, api_key=api_key)
             return Response({
                 "status": 200,
                 "message": "success",
@@ -215,7 +225,7 @@ class TranslatorView(APIView):
     of the provided SummarizerView.
     """
 
-    def generate_response(self, prompt: str, source_language: str = "English", target_language: str = "English") -> str:
+    def generate_response(self, prompt: str, source_language: str = "English", target_language: str = "English", api_key: str = "") -> str:
         """
         Generates a translated response using the Gemini API.
 
@@ -223,7 +233,7 @@ class TranslatorView(APIView):
         Gemini API, including specific system instructions for translation.
         """
         try:
-            client = genai.Client(api_key=GEMINI_API_KEY)
+            client = genai.Client(api_key=api_key)
             model = "gemini-2.5-flash-lite"
             contents = [
                 genai.types.Content(
@@ -271,7 +281,9 @@ class TranslatorView(APIView):
         prompt = request.data.get("prompt")
         target_language = request.data.get("target_language", "English")
         source_language = request.data.get("source_language", "English")
-
+        api_key = request.headers.get('Authorization')
+        api_key = strip_authentication_header(api_key)
+        
         if not prompt:
             return Response(
                 {"error": "Prompt is required."},
@@ -299,7 +311,7 @@ class WriterView(APIView):
     This view now leverages robust error handling and a consistent response structure.
     """
 
-    def generate_response(self, prompt: str) -> str:
+    def generate_response(self, prompt: str, api_key: str) -> str:
         """
         Generates original text based on the prompt using the Gemini API.
 
@@ -307,7 +319,7 @@ class WriterView(APIView):
         specific system instructions for writing.
         """
         try:
-            client = genai.Client(api_key=GEMINI_API_KEY)
+            client = genai.Client(api_key=api_key)
             model = "gemini-2.5-flash-lite"
             contents = [
                 genai.types.Content(
@@ -356,7 +368,9 @@ class WriterView(APIView):
         returning a consistent API response format.
         """
         prompt = request.data.get("prompt")
-
+        api_key = request.headers.get('Authorization')
+        api_key = strip_authentication_header(api_key)
+        
         if not prompt:
            
             return Response(
@@ -365,7 +379,7 @@ class WriterView(APIView):
             )
 
         try:
-            response_data = self.generate_response(prompt=prompt)
+            response_data = self.generate_response(prompt=prompt, api_key=api_key)
            
             return Response({
                 "status": 200,
@@ -385,7 +399,7 @@ class RewriterView(APIView):
     This view now leverages robust error handling and a consistent response structure.
     """
 
-    def generate_response(self, prompt: str) -> str:
+    def generate_response(self, prompt: str, api_key: str) -> str:
         """
         Generates rewritten content based on the prompt using the Gemini API.
 
@@ -393,7 +407,7 @@ class RewriterView(APIView):
         specific system instructions for rewriting.
         """
         try:
-            client = genai.Client(api_key=GEMINI_API_KEY)
+            client = genai.Client(api_key=api_key)
             model = "gemini-2.5-flash-lite"
             contents = [
                 genai.types.Content(
@@ -442,7 +456,9 @@ class RewriterView(APIView):
         returning a consistent API response format.
         """
         prompt = request.data.get("prompt")
-
+        api_key = request.headers.get('Authorization')
+        api_key = strip_authentication_header(api_key)
+        
         if not prompt:
            
             return Response(
@@ -451,7 +467,7 @@ class RewriterView(APIView):
             )
 
         try:
-            response_data = self.generate_response(prompt=prompt)
+            response_data = self.generate_response(prompt=prompt, api_key=api_key   )
            
             return Response({
                 "status": 200,
