@@ -5,6 +5,7 @@ from google import genai
 from google.genai import types
 import logging
 from core.helper import strip_authentication_header
+from core.models import ChatRecord
 
 logger = logging.getLogger(__name__)
 
@@ -117,6 +118,8 @@ class PromptView(APIView):
 
         try:
             response_data = self.generate_response(prompt=prompt, api_key=api_key)
+            ChatRecord.objects.create(method='prompt', prompt=prompt, response=response_data)
+            
             return Response({
                 "status": 200,
                 "message": "success", 
@@ -124,9 +127,78 @@ class PromptView(APIView):
             }, status=status.HTTP_200_OK)
         except Exception as e:
             return Response(
-                {"error": "An unexpected error occurred while processing your request."},
+                {"error": f"An unexpected error occurred while processing your request. {e}"},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
+
+class ProofreaderView(APIView):
+    def generate_response(self, prompt: str, api_key: str) -> str:
+        try:
+            client = genai.Client(api_key=api_key)
+            model = "gemini-2.5-flash-lite"
+            contents = [
+                genai.types.Content(
+                    role="user",
+                    parts=[
+                        genai.types.Part.from_text(text=prompt),
+                    ],
+                ),
+            ]
+            generate_content_config = genai.types.GenerateContentConfig(
+                thinking_config=genai.types.ThinkingConfig(
+                    thinking_budget=-1,
+                ),
+                response_mime_type="application/json",
+                response_schema=genai.types.Schema(
+                    type=genai.types.Type.OBJECT,
+                    required=["response"],
+                    properties={
+                        "response": genai.types.Schema(
+                            type=genai.types.Type.STRING,
+                        ),
+                    },
+                ),
+                system_instruction=[
+                    genai.types.Part.from_text(text="You are a proofreader. Your task is to proofread the given text and make sure it is grammatically correct and semantically correct."),
+                ],
+            )
+            response = client.models.generate_content(
+                model=model,
+                contents=contents,
+                config=generate_content_config,
+            )
+            return response.text
+        except Exception as e:
+            logger.error(f"An error occurred during Gemini API call in ProofreaderView: {e}")
+            raise
+    
+    def post(self, request, *args, **kwargs):
+        prompt = request.data.get("prompt")
+        api_key = request.headers.get('Authorization')
+        api_key = strip_authentication_header(api_key)
+        if not prompt:
+            return Response(
+                {"error": "A 'prompt' is required in the request body."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        if not api_key:
+            return Response(
+                {"error": "Authorization header is required."},
+                status=status.HTTP_401_UNAUTHORIZED
+            )
+        try:
+            response_data = self.generate_response(prompt=prompt, api_key=api_key)
+            ChatRecord.objects.create(method='proofreader', prompt=prompt, response=response_data)
+            return Response({
+                "status": 200,
+                "message": "success",
+                "data": response_data
+            }, status=status.HTTP_200_OK)
+        except Exception as e:
+            return Response(
+                {"error": f"An unexpected error occurred while processing your request. {e}"},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )   
 
 class SummarizerView(APIView):
     """
@@ -207,6 +279,8 @@ class SummarizerView(APIView):
 
         try:
             response_data = self.generate_response(prompt=prompt, api_key=api_key)
+            ChatRecord.objects.create(method='summarizer', prompt=prompt, response=response_data)
+    
             return Response({
                 "status": 200,
                 "message": "success",
@@ -292,7 +366,8 @@ class TranslatorView(APIView):
 
         try:
             translation_text = self.generate_response(prompt=prompt, target_language=target_language, source_language=source_language)
-            
+            ChatRecord.objects.create(method='translator', prompt=prompt, response=translation_text)
+          
             return Response({
                 "status": 200,
                 "message": "success",
@@ -380,7 +455,8 @@ class WriterView(APIView):
 
         try:
             response_data = self.generate_response(prompt=prompt, api_key=api_key)
-           
+            ChatRecord.objects.create(method='writer', prompt=prompt, response=response_data)
+       
             return Response({
                 "status": 200,
                 "message": "success",
@@ -468,7 +544,8 @@ class RewriterView(APIView):
 
         try:
             response_data = self.generate_response(prompt=prompt, api_key=api_key   )
-           
+            ChatRecord.objects.create(method='rewriter', prompt=prompt, response=response_data)
+          
             return Response({
                 "status": 200,
                 "message": "success",
@@ -480,3 +557,38 @@ class RewriterView(APIView):
                 {"error": "An unexpected error occurred while processing your request."},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
+
+class HistoryView(APIView):
+    """
+    API View for retrieving history of prompts.
+    """
+    def get(self, request):
+        try:
+            history = ChatRecord.objects.all()
+            history_list = []
+
+            for record in history:
+                header_authentication = strip_authentication_header(request.headers.get('Authorization'))
+                if header_authentication == record.api_key:
+                    history_object = {
+                        "method": record.method,
+                        "prompt": record.prompt[:100],
+                        "response": record.response[:100],
+                        "created_at": record.created_at
+                    }
+                    history_list.append(history_object) 
+
+            return Response({
+                "status": 200,
+                "message": "success",
+                "data": history_list
+            }, status=status.HTTP_200_OK)
+        except Exception as e:
+            return Response({
+                "status": 500,
+                "message": "error",
+                "data": "An unexpected error occurred while processing your request." + str(e)
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            
+
+        
