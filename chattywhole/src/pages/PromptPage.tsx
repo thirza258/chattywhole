@@ -4,7 +4,7 @@ import type { Response } from "../interface";
 import ReactMarkdown from "react-markdown";
 
 function PromptPage() {
-  const [messages, setMessages] = useState<{ text: string; user: string }[]>(
+  const [messages, setMessages] = useState<{ text: string | object; user: string }[]>(
     []
   );
   const [input, setInput] = useState("");
@@ -18,9 +18,16 @@ function PromptPage() {
       { text: userInput, user: "me" },
     ]);
     setInput("");
-
     try {
-      const response: Response = await services.postPrompt(userInput);
+      const response : Response = await services.postPrompt(userInput);
+      if (!response) throw new Error("No response received");
+
+      if (typeof response.data === 'string' && response.data.charAt(0) === '{') {
+        const parsedData = JSON.parse(response.data);
+        if (parsedData.response) {
+          response.data = parsedData.response;
+        }
+      }
 
       setMessages((prevMessages) => [
         ...prevMessages,
@@ -68,7 +75,7 @@ function PromptPage() {
               }`}
             >
               {/* Using ReactMarkdown to render the bot's response */}
-              <ReactMarkdown>{msg.text}</ReactMarkdown>
+              <ReactMarkdown>{msg.text as string}</ReactMarkdown>
             </div>
           </div>
         ))}

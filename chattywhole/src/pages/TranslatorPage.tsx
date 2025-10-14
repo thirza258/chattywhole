@@ -1,4 +1,7 @@
 import React, { useState } from 'react'; 
+import services from '../services/services';
+import type { Response } from '../interface';
+import ReactMarkdown from 'react-markdown';
 
 const TranslatorPage: React.FC = () => {
   const [inputText, setInputText] = useState<string>('');
@@ -10,11 +13,26 @@ const TranslatorPage: React.FC = () => {
     setInputText(event.target.value);
     // You can add your logic here to process the input and set the result
     setResultText(`Processed: ${event.target.value}`);
+    setResultText(services.handleResponseData(event.target.value));
   }; 
+
+  const handleTranslate = async () => {
+    try {
+      const response: Response = await services.postTranslator(inputText, targetLang, sourceLang);
+      setResultText(services.handleResponseData(response.data));
+      setInputText(response.data);
+    } catch (error) {
+      console.error("Error fetching response:", error);
+    }
+  };
 
   const languages = [
     { code: 'en', name: 'English' },
     { code: 'es', name: 'Spanish' },
+    { code: 'id', name: 'Indonesian' },
+    { code: 'ms', name: 'Malay' },
+    { code: 'hi', name: 'Hindi' },
+    { code: 'ar', name: 'Arabic' },
     { code: 'fr', name: 'French' },
     { code: 'de', name: 'German' },
     { code: 'it', name: 'Italian' },
@@ -75,13 +93,14 @@ const TranslatorPage: React.FC = () => {
               placeholder="Enter your text here..."
               value={inputText}
               onChange={handleInputChange}
+              onBlur={handleTranslate}
             />
           </div> 
 
           {/* Right Column (Result) */}
           <div className="bg-white rounded-lg shadow-md flex flex-col">
             <div className="w-full h-full p-4 rounded-lg">
-              <pre className="whitespace-pre-wrap break-words">{resultText}</pre>
+              <ReactMarkdown>{resultText as string}</ReactMarkdown>
             </div>
           </div>
         </div>

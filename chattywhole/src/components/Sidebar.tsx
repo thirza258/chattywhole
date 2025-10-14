@@ -5,9 +5,9 @@ interface SidebarProps {
   selectedTool: string;
   setSelectedTool: (tool: string) => void;
   history: {
+    method: string;
     prompt: string;
     response: string;
-    model_name: string;
     created_at: string;
   }[];
 }
@@ -53,14 +53,15 @@ const Sidebar: React.FC<SidebarProps> = ({ selectedTool, setSelectedTool, histor
               key={index}
               className="mb-4 p-4 bg-white shadow rounded-lg border border-gray-300"
             >
-              <h3 className="font-bold text-lg mb-2">{entry.model_name}</h3>
+              <h3 className="font-bold text-lg mb-2">{entry.method}</h3>
               <div className="text-sm text-gray-800 space-y-2">
                 <div>
-                  <strong>Prompt:</strong> {entry.prompt}
+                  <strong>Prompt:</strong> {entry.prompt.slice(0, 100)}
                 </div>
                 <div>
-                  <strong>Response:</strong> <ReactMarkdown>{entry.response}</ReactMarkdown>
+                  <strong>Response:</strong> <ReactMarkdown>{entry.response.slice(0, 100)}</ReactMarkdown>
                 </div>
+              
               </div>
               <p className="text-xs text-gray-500 mt-2 text-right">
                 {new Date(entry.created_at).toLocaleString()}

@@ -1,4 +1,7 @@
 import React, { useState } from 'react';
+import services from '../services/services';
+import type { Response } from '../interface';
+import ReactMarkdown from 'react-markdown';
 
 const ProofreaderPage: React.FC = () => {
   const [inputText, setInputText] = useState<string>('');
@@ -6,8 +9,15 @@ const ProofreaderPage: React.FC = () => {
 
   const handleInputChange = (event: React.ChangeEvent<HTMLTextAreaElement>) => {
     setInputText(event.target.value);
-    // You can add your logic here to process the input and set the result
-    setResultText(`Processed: ${event.target.value}`);
+  };
+
+  const handleProofread = async () => {
+    try {
+      const response: Response = await services.postProofreader(inputText);
+      setResultText(services.handleResponseData(response.data));
+    } catch (error) {
+      console.error("Error fetching response:", error);
+    }
   };
 
   return (
@@ -42,13 +52,21 @@ const ProofreaderPage: React.FC = () => {
           {/* Right Column (Result) */}
           <div className="bg-white rounded-lg shadow-md flex flex-col">
             <div className="w-full h-full p-4 rounded-lg">
-              <pre className="whitespace-pre-wrap break-words">{resultText}</pre>
+              <ReactMarkdown>{resultText as string}</ReactMarkdown>
             </div>
           </div>
         </div>
-      </main>
 
-      
+        {/* Button */}
+        <div className="flex justify-center mt-4">
+          <button
+            className="bg-blue-500 text-white px-6 py-2 rounded-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            onClick={handleProofread}
+          >
+            Proofread
+          </button>
+        </div>
+      </main>
     </div>
   );
 };

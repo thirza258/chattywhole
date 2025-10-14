@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-
+import services from '../services/services';
 const SummarizerPage: React.FC = () => {
   const [inputText, setInputText] = useState<string>('');
   const [resultText, setResultText] = useState<string>('');
@@ -9,6 +9,7 @@ const SummarizerPage: React.FC = () => {
     setInputText(text);
     // You can add your logic here to process the input and set the result
     setResultText(`Processed: ${text}`);
+    setResultText(services.handleResponseData(text));
   };
 
   return (
@@ -39,7 +40,7 @@ const SummarizerPage: React.FC = () => {
           <div className="bg-white rounded-lg shadow-md flex flex-col">
             <h2 className="text-lg font-semibold text-gray-700 p-4 border-b">Result</h2>
             <div className="w-full h-full p-4">
-              <pre className="whitespace-pre-wrap break-words">{resultText}</pre>
+              <pre className="whitespace-pre-wrap break-words">{resultText as string}</pre>
             </div>
           </div>
         </div>

@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import services from '../services/services';
 
 const RewriterPage: React.FC = () => {
   const [inputText, setInputText] = useState<string>('');
@@ -6,13 +7,12 @@ const RewriterPage: React.FC = () => {
 
   const handleInputChange = (event: React.ChangeEvent<HTMLTextAreaElement>) => {
     setInputText(event.target.value);
-    // You can add your logic here to process the input and set the result
     setResultText(`Processed: ${event.target.value}`);
+    setResultText(services.handleResponseData(event.target.value));
   };
 
   return (
     <div className="flex flex-col h-screen bg-gray-100">
-      {/* Header */}
       <header className="bg-white shadow-md">
         <div className="container mx-auto px-4 py-4">
           <h1 className="text-2xl font-bold text-gray-800">Two Column Layout</h1>
@@ -42,7 +42,7 @@ const RewriterPage: React.FC = () => {
           {/* Right Column (Result) */}
           <div className="bg-white rounded-lg shadow-md flex flex-col">
             <div className="w-full h-full p-4 rounded-lg">
-              <pre className="whitespace-pre-wrap break-words">{resultText}</pre>
+              <pre className="whitespace-pre-wrap break-words">{resultText as string}</pre>
             </div>
           </div>
         </div>
