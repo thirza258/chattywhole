@@ -10,37 +10,50 @@ from core.models import ChatRecord
 logger = logging.getLogger(__name__)
 
 class ApiKeyCheckView(APIView):
-    """
-    API View for validating the Gemini API key.
-    """
     def get(self, request):
-        try:
-            api_key = request.headers.get('Authorization')
-            if not api_key:
-                return Response({
-                    "status": status.HTTP_401_UNAUTHORIZED,
-                    "message": "API key not provided",
-                    "data": "false"
-                })
-
-            client = genai.Client(api_key=api_key)
-            
-            model = client.get_model("gemini-2.5-flash-lite")
-            model.count_tokens("test")
-            
-            return Response({
-                "status": status.HTTP_200_OK,
-                "message": "API key is valid", 
-                "data": "true"
-            })
-            
-        except Exception as e:
-            logger.error(f"API key validation failed: {e}")
+        api_key = request.headers.get('Authorization')
+        if not api_key:
             return Response({
                 "status": status.HTTP_401_UNAUTHORIZED,
-                "message": "Invalid API key",
-                "data": "false"
-            })
+                "message": "API key not provided",
+                "data": False
+            }, status=status.HTTP_401_UNAUTHORIZED)
+
+        try:
+            # Initialize Gemini client
+            client = genai.Client(api_key=api_key)
+
+            # Try a simple test generation
+            response = client.models.generate_content(
+                model="gemini-2.5-flash-lite",
+                contents="test"
+            )
+
+            # If request succeeded, assume key is valid
+            return Response({
+                "status": status.HTTP_200_OK,
+                "message": "API key is valid",
+                "data": True
+            }, status=status.HTTP_200_OK)
+
+        except Exception as e:
+            # Log and inspect the error
+            logger.error(f"API key validation failed: {e}")
+
+            # Detect invalid key from error message
+            if "API key not valid" in str(e) or "API_KEY_INVALID" in str(e):
+                return Response({
+                    "status": status.HTTP_401_UNAUTHORIZED,
+                    "message": "Invalid API key",
+                    "data": False
+                }, status=status.HTTP_401_UNAUTHORIZED)
+
+            # For any other errors
+            return Response({
+                "status": status.HTTP_400_BAD_REQUEST,
+                "message": f"Error: {str(e)}",
+                "data": False
+            }, status=status.HTTP_400_BAD_REQUEST)
 
 class PromptView(APIView):
     """
@@ -159,7 +172,11 @@ class ProofreaderView(APIView):
                     },
                 ),
                 system_instruction=[
-                    genai.types.Part.from_text(text="You are a proofreader. Your task is to proofread the given text and make sure it is grammatically correct and semantically correct."),
+                    genai.types.Part.from_text(text="""You are a proofreader.
+                     Your task is to proofread the given text and 
+                     make sure it is grammatically correct and semantically correct. 
+                     And make sure to proofread eventough the text is already perfect
+                     """),
                 ],
             )
             response = client.models.generate_content(
@@ -557,6 +574,141 @@ class RewriterView(APIView):
                 {"error": "An unexpected error occurred while processing your request."},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
+
+class CopyWritingView(APIView):
+    """
+    API View for generating copywriting based on the prompt.
+    """
+    def generate_response(self, prompt: str, api_key: str) -> str:
+        """
+        Generates copywriting based on the prompt using the Gemini API.
+        """
+        try:
+            client = genai.Client(api_key=api_key)
+            model = "gemini-2.5-flash-lite"
+            contents = [
+                genai.types.Content(
+                    role="user",
+                    parts=[
+                        genai.types.Part.from_text(text=prompt),
+                    ],
+                ),
+            ]
+            generate_content_config = genai.types.GenerateContentConfig(
+                thinking_config=types.ThinkingConfig(
+                    thinking_budget=-1,
+                ),
+                response_mime_type="application/json",
+                response_schema=genai.types.Schema(
+                    type=genai.types.Type.OBJECT,
+                    required=["response"],
+                    properties={
+                        "response": genai.types.Schema(
+                            type=genai.types.Type.STRING,
+                        ),
+                    },
+                ),
+                system_instruction=[
+                    genai.types.Part.from_text(text="You are a skilled copywriter. Your task is to create engaging and persuasive copywriting based on the user's prompt."),
+                ],
+            )
+            response = client.models.generate_content(
+                model=model,
+                contents=contents,
+                config=generate_content_config,
+            )
+            return response.text
+        except Exception as e:
+            logger.error(f"An error occurred during Gemini API call in CopyWriting: {e}")
+            raise
+    
+    def post(self, request, *args, **kwargs):
+        """
+        Handles POST requests to generate copywriting.
+        """
+        prompt = request.data.get("prompt")
+        api_key = request.headers.get('Authorization')
+        api_key = strip_authentication_header(api_key)
+        if not prompt:
+            return Response(
+                {"error": "A 'prompt' is required in the request body."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+class ExplainerView(APIView):
+    """
+    API View for generating explainer based on the prompt.
+    """
+    def generate_response(self, prompt: str, api_key: str) -> str:
+        """
+        Generates explainer based on the prompt using the Gemini API.
+        """
+        try:
+            client = genai.Client(api_key=api_key)
+            model = "gemini-2.5-flash-lite"
+            contents = [
+                genai.types.Content(
+                    role="user",
+                    parts=[
+                        genai.types.Part.from_text(text=prompt),
+                    ],
+                ),
+            ]
+            generate_content_config = genai.types.GenerateContentConfig(
+                thinking_config=types.ThinkingConfig(
+                    thinking_budget=-1,
+                ),
+                response_mime_type="application/json",
+                response_schema=genai.types.Schema(
+                    type=genai.types.Type.OBJECT,
+                    required=["response"],
+                    properties={
+                        "response": genai.types.Schema(
+                            type=genai.types.Type.STRING,
+                        ),
+                    },
+                ),
+                system_instruction=[
+                    genai.types.Part.from_text(text="You are a skilled explainer. Your task is to explain the given prompt in a way that is easy to understand."),
+                ],
+            )
+            response = client.models.generate_content(
+                model=model,
+                contents=contents,
+                config=generate_content_config,
+            )
+            return response.text
+        except Exception as e:
+            logger.error(f"An error occurred during Gemini API call in ExplainerView: {e}")
+            raise
+    
+    def post(self, request, *args, **kwargs):
+        """
+        Handles POST requests to generate explainer.
+        """
+        prompt = request.data.get("prompt")
+        api_key = request.headers.get('Authorization')
+        api_key = strip_authentication_header(api_key)  
+        if not prompt:
+            return Response(
+                {"error": "A 'prompt' is required in the request body."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        try:
+            response_data = self.generate_response(prompt=prompt, api_key=api_key)
+            ChatRecord.objects.create(method='explainer', prompt=prompt, response=response_data)
+            return Response({
+                "status": 200,
+                "message": "success",
+                "data": response_data
+            }, status=status.HTTP_200_OK)
+        except Exception as e:
+            return Response({
+                "status": 500,
+                "message": "error",
+                "data": "An unexpected error occurred while processing your request." + str(e)
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
 
 class HistoryView(APIView):
     """
