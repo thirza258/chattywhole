@@ -58,9 +58,14 @@ const postTranslator = async (
   targetLanguage: string,
   sourceLanguage: string
 ) => {
+  console.log(prompt, targetLanguage, sourceLanguage);
   const response = await axios.post(
     `${API_URL}/translator/`,
-    { prompt, targetLanguage, sourceLanguage },
+    { 
+      prompt,
+      target_language: targetLanguage,
+      source_language: sourceLanguage 
+    },
     {
       headers: {
         Authorization: localStorage.getItem("apiKey"),
@@ -108,6 +113,42 @@ const postRewriter = async (prompt: string) => {
   }
 };
 
+const postCopywriting = async (prompt: string) => {
+  const response = await axios.post(
+    `${API_URL}/copywriting/`,
+    { prompt },
+    {
+      headers: {
+        Authorization: localStorage.getItem("apiKey"),
+      },
+    }
+  );
+
+  if (response.status === 200) {
+    return response.data;
+  } else {
+    throw new Error("Failed to post copywriting");
+  }
+};
+
+const postExplainer = async (prompt: string) => {
+  const response = await axios.post(
+    `${API_URL}/explainer/`,
+    { prompt },
+    {
+      headers: {
+        Authorization: localStorage.getItem("apiKey"),
+      },
+    }
+  );
+
+  if (response.status === 200) {
+    return response.data;
+  } else {
+    throw new Error("Failed to post explainer");
+  }
+};
+
 const getHistory = async () => {
   const response = await axios.get(`${API_URL}/history`, {
     headers: {
@@ -138,6 +179,8 @@ const services = {
   postTranslator,
   postWriter,
   postRewriter,
+  postCopywriting,
+  postExplainer,
   getHistory,
   handleResponseData,
 };

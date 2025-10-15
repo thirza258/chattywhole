@@ -3,14 +3,14 @@ import services from "../services/services";
 import type { Response } from "../interface";
 import ReactMarkdown from "react-markdown";
 
-function PromptPage() {
+const ExplainerPage: React.FC = () => {
   const [messages, setMessages] = useState<{ text: string | object; user: string }[]>(
     []
   );
   const [input, setInput] = useState("");
 
   const sendMessage = async () => {
-    if (input.trim() === "") return; 
+    if (input.trim() === "") return;
 
     const userInput = input;
     setMessages((prevMessages) => [
@@ -19,7 +19,7 @@ function PromptPage() {
     ]);
     setInput("");
     try {
-      const response : Response = await services.postPrompt(userInput);
+      const response: Response = await services.postExplainer(userInput); 
       if (!response) throw new Error("No response received");
 
       if (typeof response.data === 'string' && response.data.charAt(0) === '{') {
@@ -38,7 +38,7 @@ function PromptPage() {
       setMessages((prevMessages) => [
         ...prevMessages,
         {
-          text: "Sorry, something went wrong while connecting to the service.",
+          text: "Sorry, I encountered an issue while trying to generate an explanation.",
           user: "bot",
         },
       ]);
@@ -54,18 +54,23 @@ function PromptPage() {
   return (
     <div className="flex flex-col h-full relative">
 
+      {/* Background decorative elements */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute w-[800px] h-[800px] bg-blue-300/20 rounded-full blur-3xl -top-1/4 -right-1/4"></div>
-        <div className="absolute w-[600px] h-[600px] bg-blue-200/20 rounded-full blur-3xl bottom-0 -left-1/4"></div>
+        <div className="absolute w-[800px] h-[800px] bg-green-300/20 rounded-full blur-3xl -top-1/4 -right-1/4"></div>
+        <div className="absolute w-[600px] h-[600px] bg-green-200/20 rounded-full blur-3xl bottom-0 -left-1/4"></div>
 
-        <div className="absolute inset-0 flex items-center justify-center">
-          <p className="text-4xl font-bold text-gray-600 text-center">
-            Ask me anything!<br/>
-            I'm here to help
-          </p>
-        </div>
+        {/* Center text appears when there are no messages */}
+        {messages.length === 0 && (
+          <div className="absolute inset-0 flex items-center justify-center">
+            <p className="text-4xl font-bold text-gray-600 text-center">
+              Need something explained?<br/>
+              Just ask.
+            </p>
+          </div>
+        )}
       </div>
 
+      {/* Chat messages display area */}
       <div className="flex-grow overflow-y-auto p-4 relative">
         {messages.map((msg, index) => (
           <div
@@ -97,6 +102,7 @@ function PromptPage() {
         ))}
       </div>
 
+      {/* Input bar */}
       <div className="flex-shrink-0 flex p-4 bg-white border-t relative">
         <button
           onClick={() => navigator.clipboard.readText().then(text => setInput(text))}
@@ -110,17 +116,17 @@ function PromptPage() {
           value={input}
           onChange={(e) => setInput(e.target.value)}
           onKeyDown={handleKeyDown}
-          placeholder="Type your message here"
+          placeholder="Enter a topic, question, or concept to explain..."
         />
         <button
           className="bg-blue-500 text-white px-6 py-2 rounded-r-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
           onClick={sendMessage}
         >
-          Send
+          Explain
         </button>
       </div>
     </div>
   );
 }
 
-export default PromptPage;
+export default ExplainerPage;

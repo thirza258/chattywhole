@@ -1,17 +1,18 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import services from './services/services';
 import NavBar from './components/NavBar';
 import Sidebar from './components/Sidebar';
 
-// Import all your page components
-import ApiKeyPage from './pages/ApiPage'; // Import the new page
+import ApiKeyPage from './pages/ApiPage'; 
 import PromptPage from './pages/PromptPage';
 import ProofreaderPage from './pages/ProofreaderPage';
 import RewriterPage from './pages/RewriterPage';
 import SummarizerPage from './pages/SummarizerPage';
 import TranslatorPage from './pages/TranslatorPage';
 import WriterPage from './pages/WriterPage';
+import CopyWritingPage from './pages/CopyWritingPage';
+import ExplainerPage from './pages/ExplainerPage';
 
 function App() {
   const [hasApiKey, setHasApiKey] = useState(false);
@@ -62,6 +63,8 @@ function App() {
       case "Summarizer": return <SummarizerPage />;
       case "Translator": return <TranslatorPage />;
       case "Writer": return <WriterPage />;
+      case "Copywriting": return <CopyWritingPage />;
+      case "Explainer": return <ExplainerPage />;
       default: return <PromptPage />;
     }
   };

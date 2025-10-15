@@ -15,34 +15,38 @@ interface SidebarProps {
 const Sidebar: React.FC<SidebarProps> = ({ selectedTool, setSelectedTool, history }) => {
   const tools = [
     "Prompt",
-    "Proofreader",
+    "Proofreader", 
     "Rewriter",
     "Summarizer",
     "Translator",
-    "Writer"
+    "Writer",
+    "Copywriting",
+    "Explainer",
+    "Coming soon..."
   ];
 
   return (
     <div className="w-1/4 bg-gray-200 h-full p-4 border-r-2 border-white z-10 shadow-lg flex-shrink-0 flex flex-col">
       <div className="flex-shrink-0">
         <h2 className="mb-4 text-xl font-semibold">Tools</h2>
-        <ul>
-          {/* Mapped over the tools array to create links */}
-          {tools.map((tool) => (
-            <li key={tool} className="mb-4">
-              <a
-                href="#"
-                className={`block p-2 rounded hover:bg-gray-300 ${selectedTool === tool ? "font-bold bg-gray-300" : ""}`}
-                onClick={(e) => {
-                  e.preventDefault();
-                  setSelectedTool(tool);
-                }}
-              >
-                {tool}
-              </a>
-            </li>
-          ))}
-        </ul>
+        <div className="max-h-48 overflow-y-auto">
+          <ul className="grid grid-cols-2 gap-2">
+            {tools.map((tool) => (
+              <li key={tool} className="mb-2">
+                <a
+                  href="#"
+                  className={`block p-2 rounded hover:bg-gray-300 ${selectedTool === tool ? "font-bold bg-gray-300" : ""}`}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    setSelectedTool(tool);
+                  }}
+                >
+                  {tool}
+                </a>
+              </li>
+            ))}
+          </ul>
+        </div>
         <hr className="my-4 border-t-2 border-gray-400" />
         <h2 className="mb-4 text-xl font-semibold">History</h2>
       </div>
