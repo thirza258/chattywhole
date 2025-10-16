@@ -15,6 +15,7 @@ import CopyWritingPage from './pages/CopyWritingPage';
 import ExplainerPage from './pages/ExplainerPage';
 import RAGPage from './pages/RAGPage';
 import InsertFile from './pages/InsertFile';
+import ImaGenPage from './pages/ImaGenPage';
 
 function App() {
   const [hasApiKey, setHasApiKey] = useState(false);
@@ -73,8 +74,8 @@ function App() {
       case "Writer": return <WriterPage />;
       case "Copywriting": return <CopyWritingPage />;
       case "Explainer": return <ExplainerPage />;
-      case "Document AI":
-        return isRagChatActive ? <RAGPage /> : <InsertFile onUploadSuccess={() => setIsRagChatActive(true)} />;
+      case "Document AI": return isRagChatActive ? <RAGPage /> : <InsertFile onUploadSuccess={() => setIsRagChatActive(true)} />;
+      case "Image Generation": return <ImaGenPage />;
       default: return <PromptPage />;
     }
   };

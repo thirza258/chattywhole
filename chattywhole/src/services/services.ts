@@ -192,8 +192,26 @@ const chatWithRAG = async (prompt: string) => {
       Authorization: localStorage.getItem("apiKey"),
     },
   });
-  return response.data;
+  if (response.status === 200) {
+    return response.data;
+  } else {
+    throw new Error("Failed to insert file");
+  }
 }
+
+const generateImage = async (prompt: string) => {
+  const response = await axios.post(`${API_URL}/image/`, { prompt }, {
+    headers: {
+      Authorization: localStorage.getItem("apiKey"),
+    },
+  });
+
+  if (response.status === 200) {
+    return response.data;
+  } else {
+    throw new Error("Failed to generate image");
+  }
+};
 
 const services = {
   postPrompt,
@@ -208,6 +226,7 @@ const services = {
   chatWithRAG,
   insertFile,
   handleResponseData,
+  generateImage,
 };
 
 export default services;

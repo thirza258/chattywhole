@@ -30,9 +30,7 @@ const RewriterPage: React.FC = () => {
         </div>
       </header>
 
-      {/* Main Content */}
       <main className="flex-grow container mx-auto px-4 py-6 flex flex-col">
-        {/* Sub Header */}
         <div className="flex justify-between items-center mb-4">
           <div className="flex items-center gap-2">
             <h2 className="text-lg font-semibold text-gray-700">Input</h2>
@@ -70,7 +68,6 @@ const RewriterPage: React.FC = () => {
             </div>
           </div>
 
-          {/* Right Column (Result) */}
           <div className="bg-white rounded-lg shadow-md flex flex-col h-[70vh] outline outline-1 outline-gray-800">
             <div className="w-full h-full p-4 rounded-lg">
                 <ReactMarkdown>{resultText as string}</ReactMarkdown>
