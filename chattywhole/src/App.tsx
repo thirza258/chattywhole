@@ -13,11 +13,14 @@ import TranslatorPage from './pages/TranslatorPage';
 import WriterPage from './pages/WriterPage';
 import CopyWritingPage from './pages/CopyWritingPage';
 import ExplainerPage from './pages/ExplainerPage';
+import RAGPage from './pages/RAGPage';
+import InsertFile from './pages/InsertFile';
 
 function App() {
   const [hasApiKey, setHasApiKey] = useState(false);
   const [selectedTool, setSelectedTool] = useState("Prompt");
   const [history, setHistory] = useState([]);
+  const [isRagChatActive, setIsRagChatActive] = useState(false);
 
   useEffect(() => {
     const storedKey = localStorage.getItem('apiKey');
@@ -55,6 +58,11 @@ function App() {
     setHasApiKey(false);
   };
 
+  const handleToolSelection = (tool: string) => {
+    setSelectedTool(tool);
+    setIsRagChatActive(false); 
+  };
+
   const renderSelectedPage = () => {
     switch (selectedTool) {
       case "Prompt": return <PromptPage />;
@@ -65,6 +73,8 @@ function App() {
       case "Writer": return <WriterPage />;
       case "Copywriting": return <CopyWritingPage />;
       case "Explainer": return <ExplainerPage />;
+      case "Document AI":
+        return isRagChatActive ? <RAGPage /> : <InsertFile onUploadSuccess={() => setIsRagChatActive(true)} />;
       default: return <PromptPage />;
     }
   };
@@ -83,7 +93,7 @@ function App() {
       <div className="flex flex-grow overflow-hidden">
         <Sidebar 
           selectedTool={selectedTool} 
-          setSelectedTool={setSelectedTool} 
+          setSelectedTool={handleToolSelection} 
           history={history} 
         />
         <main className="flex-grow overflow-y-auto p-6">

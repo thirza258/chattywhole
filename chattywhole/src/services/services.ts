@@ -172,6 +172,29 @@ const handleResponseData = (response: string) => {
     return response;
 }
 
+const insertFile = async (file: File) => {
+  const response = await axios.post(`${API_URL}/file/`, { file }, {
+    headers: {
+      Authorization: localStorage.getItem("apiKey"),
+    },
+  });
+    
+  if (response.status === 200) {
+    return response.data;
+  } else {
+    throw new Error("Failed to insert file");
+  }
+}
+
+const chatWithRAG = async (prompt: string) => {
+  const response = await axios.post(`${API_URL}/rag/`, { prompt }, {
+    headers: {
+      Authorization: localStorage.getItem("apiKey"),
+    },
+  });
+  return response.data;
+}
+
 const services = {
   postPrompt,
   postProofreader,
@@ -182,6 +205,8 @@ const services = {
   postCopywriting,
   postExplainer,
   getHistory,
+  chatWithRAG,
+  insertFile,
   handleResponseData,
 };
 

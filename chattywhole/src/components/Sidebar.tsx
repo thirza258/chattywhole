@@ -22,6 +22,7 @@ const Sidebar: React.FC<SidebarProps> = ({ selectedTool, setSelectedTool, histor
     "Writer",
     "Copywriting",
     "Explainer",
+    "Document AI",
     "Coming soon..."
   ];
 
