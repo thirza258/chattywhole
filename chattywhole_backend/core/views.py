@@ -4,8 +4,9 @@ from rest_framework import status
 from google import genai
 from google.genai import types
 import logging
-from core.helper import strip_authentication_header
+from core.helper import strip_authentication_header, extract_text_from_pdf, save_file
 from core.models import ChatRecord
+from core.apps import rag_index
 
 logger = logging.getLogger(__name__)
 
@@ -681,14 +682,14 @@ class ExplainerView(APIView):
         except Exception as e:
             logger.error(f"An error occurred during Gemini API call in ExplainerView: {e}")
             raise
-    
+
     def post(self, request, *args, **kwargs):
         """
         Handles POST requests to generate explainer.
         """
         prompt = request.data.get("prompt")
         api_key = request.headers.get('Authorization')
-        api_key = strip_authentication_header(api_key)  
+        api_key = strip_authentication_header(api_key)
         if not prompt:
             return Response(
                 {"error": "A 'prompt' is required in the request body."},
@@ -709,6 +710,130 @@ class ExplainerView(APIView):
                 "data": "An unexpected error occurred while processing your request." + str(e)
             }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
+class PDFUploadRAGView(APIView):
+    """
+    API endpoint to upload a PDF, extract its text,
+    and process it through the RAG service.
+    """
+
+    def post(self, request):
+        pdf_file = request.FILES.get("file")
+
+        if not pdf_file:
+            return Response(
+                {"error": "No PDF file provided."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        try:
+            file_path = save_file(pdf_file)
+        except Exception as e:
+            return Response(
+                {"error": f"Failed to save PDF: {str(e)}"},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+
+        try:
+            text_content = extract_text_from_pdf(pdf_file)
+            if not text_content:
+                return Response(
+                    {"error": "No text could be extracted from PDF."},
+                    status=status.HTTP_422_UNPROCESSABLE_ENTITY
+                )
+        except Exception as e:
+            return Response(
+                {"error": f"Error extracting PDF text: {str(e)}"},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+
+        try:
+            result = rag_index.retrieve_documents(text_content, k=3)
+        except Exception as e:
+            return Response(
+                {"error": f"RAG service failed: {str(e)}"},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+
+        return Response({
+            "message": "PDF processed successfully",
+            "file_path": file_path,
+            "rag_result": result
+        }, status=status.HTTP_200_OK)
+
+class RAGChatView(APIView):
+    """
+    API View for chatting with the RAG service.
+    """
+    def generate_response(self, prompt: str, api_key: str, chunks: list) -> str:
+        try:
+            client = genai.Client(api_key=api_key)
+            model = "gemini-2.5-flash"
+            contents = [
+                genai.types.Part.from_text(text=f"User Question: {prompt}"),
+                genai.types.Part.from_text(text="Context Information:"),
+                *[genai.types.Part.from_text(text=f"Document {i+1}: {chunk}") for i, chunk in enumerate(chunks)]
+            ]
+            generate_content_config = genai.types.GenerateContentConfig(
+                thinking_config=types.ThinkingConfig(
+                    thinking_budget=-1,
+                ),
+                response_mime_type="application/json",
+                response_schema=genai.types.Schema(
+                    type=genai.types.Type.OBJECT,
+                    required=["response"],
+                    properties={
+                        "response": genai.types.Schema(
+                            type=genai.types.Type.STRING,
+                        ),
+                    },
+                ),
+                system_instruction=[
+                    genai.types.Part.from_text(text="You are a helpful assistant. Your task is to answer the user's question based on the given context."),
+                ],
+            )
+            response = client.models.generate_content(
+                model=model,
+                contents=contents,
+                config=generate_content_config,
+            )
+            return response.text
+        except Exception as e:
+            logger.error(f"An error occurred during Gemini API call in RAGChatView: {e}")
+            raise
+
+    def post(self, request, *args, **kwargs):
+        """
+        Handles POST requests to chat with the RAG service.
+        """
+        prompt = request.data.get("prompt")
+        api_key = request.headers.get('Authorization')
+        api_key = strip_authentication_header(api_key)
+        if not prompt:
+            return Response(
+                {"error": "A 'prompt' is required in the request body."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        try:
+            chunks = rag_index.retrieve_documents(prompt, k=3)
+            response_data = self.generate_response(prompt=prompt, api_key=api_key, chunks=chunks)
+            ChatRecord.objects.create(method='rag_chat', prompt=prompt, response=response_data)
+            return Response({
+                "status": 200,
+                "message": "success",
+                "data": response_data
+            }, status=status.HTTP_200_OK)
+        except Exception as e:
+            return Response({
+                "status": 500,
+                "message": "error",
+                "data": "An unexpected error occurred while processing your request." + str(e)
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        except Exception as e:
+            return Response({
+                "status": 500,
+                "message": "error",
+                "data": "An unexpected error occurred while processing your request." + str(e)
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 class HistoryView(APIView):
     """
