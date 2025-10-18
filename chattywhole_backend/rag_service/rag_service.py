@@ -14,8 +14,8 @@ class RAGIndex:
         self.faiss_index = None
         self.documents = []
 
-        self.chunk_size = 1000        
-        self.chunk_overlap = 200       
+        self.chunk_size = 200        
+        self.chunk_overlap = 50       
 
         self.load_data()
 

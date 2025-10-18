@@ -1,5 +1,6 @@
 from django.urls import path
-from .views import PromptView, ProofreaderView, SummarizerView, TranslatorView, WriterView, RewriterView, ApiKeyCheckView, HistoryView, CopyWritingView
+from .views import PromptView, ProofreaderView, SummarizerView, TranslatorView, WriterView, RewriterView, ApiKeyCheckView, HistoryView
+from .views import CopyWritingView, ImageGeneratorView, ExplainerView, PDFUploadRAGView, RAGChatView
 
 urlpatterns = [
     path("prompt/", PromptView.as_view(), name="prompt"),
@@ -9,6 +10,10 @@ urlpatterns = [
     path("translator/", TranslatorView.as_view(), name="translator"),
     path("writer/", WriterView.as_view(), name="writer"),
     path("rewriter/", RewriterView.as_view(), name="rewriter"),
+    path("image/", ImageGeneratorView.as_view(), name="image"),
+    path("explainer/", ExplainerView.as_view(), name="explainer"),
+    path("pdf-upload/", PDFUploadRAGView.as_view(), name="pdf-upload"),
+    path("rag-chat/", RAGChatView.as_view(), name="rag-chat"),
     path("api-key-check/", ApiKeyCheckView.as_view(), name="api-key-check"),
     path("history/", HistoryView.as_view(), name="history"),
 ]
