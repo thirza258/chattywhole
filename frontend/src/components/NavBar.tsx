@@ -10,8 +10,8 @@ const NavBar: React.FC<NavBarProps> = ({ selectedTool, hasApiKey, onClearApiKey 
   return (
     <nav className="w-full h-16 bg-gray-800 text-white flex items-center justify-between px-4 border-b-2 border-white z-10">
       <div className="flex items-center gap-4">
-        <img src="/logo.png" alt="ChattyWhole Logo" className="h-8 w-8" />
-        <h1 className="text-lg font-bold">ChattyWhole</h1>
+        <img src="/logo.png" alt="Nevatal Logo" className="h-8 w-8" />
+        <h1 className="text-lg font-bold">Nevatal</h1>
         <button
           className="px-3 py-1 bg-gray-600 hover:bg-gray-700 rounded-md text-sm"
           onClick={() => {

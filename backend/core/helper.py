@@ -2,7 +2,7 @@ import PyPDF2
 import io
 from typing import Optional
 import os
-from chattywhole_settings import settings
+from nevatal_settings import settings
 from core.apps import rag_index
 
 def strip_authentication_header(header: str) -> str:

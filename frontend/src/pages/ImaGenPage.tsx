@@ -55,12 +55,14 @@ const ImaGenPage: React.FC = () => {
         <div className="container mx-auto px-4 py-4">
           <h1 className="text-2xl font-bold text-gray-800">Image Generation</h1>
           <p className="text-gray-600 mt-2">Describe the image you want our AI to create. Be as specific as you want.</p>
+          <p className="text-red-600 font-medium bg-red-50 p-2 rounded-md border border-red-200">⚠️ To use this page, make sure you have an API key and Google Cloud connected to your account</p>
           <button
             onClick={() => setPrompt('')}
             className="mt-2 px-3 py-1 text-sm bg-gray-100 hover:bg-gray-200 rounded-md text-gray-600"
           >
             Clear Prompt
           </button>
+
         </div>
       </header>
 

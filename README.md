@@ -1,6 +1,6 @@
-# ChattyWhole - AI Functions Hub
+# Nevatal - AI Functions Hub
 
-ChattyWhole is a comprehensive AI application that combines multiple AI functionalities into a single, easy-to-use platform. The application consists of a frontend running on Vue.js and a Django backend that integrates various AI capabilities.
+Nevatal is a comprehensive AI application that combines multiple AI functionalities into a single, easy-to-use platform. The application consists of a frontend running on Vue.js and a Django backend that integrates various AI capabilities.
 
 ## Features
 
@@ -25,8 +25,8 @@ ChattyWhole is a comprehensive AI application that combines multiple AI function
 
 1. Clone the repository:
    ```bash
-   git clone https://github.com/yourusername/chattywhole.git
-   cd chattywhole
+   git clone https://github.com/thirza258/nevatal.git
+   cd nevatal
    ```
 
 2. Build and run with Docker Compose:

@@ -13,11 +13,11 @@ services:
     restart: unless-stopped
 
   backend:
-    build: ./chattywhole_backend
-    container_name: django_backend
+    build: ./backend
+    container_name: nevatal_backend
     command: python manage.py runserver 0.0.0.0:8000
     volumes:
-      - ./chattywhole_backend:/app
+      - ./backend:/app
     ports:
       - "8000:8000"
     environment:
@@ -28,8 +28,8 @@ services:
     restart: unless-stopped
 
   frontend:
-    build: ./chattywhole
-    container_name: react_frontend
+    build: ./frontend
+    container_name: nevatal_frontend
     ports:
       - "80:80"
     depends_on:
