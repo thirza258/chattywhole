@@ -2,18 +2,20 @@ import React, { useState } from 'react';
 import services from '../services/services';
 
 interface InsertFileProps {
-  onUploadSuccess: () => void;
+  onUploadSuccess: (documentName: string) => void;
 }
 
 const InsertFile: React.FC<InsertFileProps> = ({ onUploadSuccess }) => {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [uploading, setUploading] = useState<boolean>(false);
   const [error, setError] = useState<string>('');
+  const [documentName, setDocumentName] = useState<string>('');
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     if (event.target.files && event.target.files[0]) {
       setSelectedFile(event.target.files[0]);
       setError('');
+      setDocumentName(event.target.files[0].name);
     }
   };
 
@@ -29,7 +31,7 @@ const InsertFile: React.FC<InsertFileProps> = ({ onUploadSuccess }) => {
 
     try {
       await services.insertFile(selectedFile);
-      onUploadSuccess();
+      onUploadSuccess(documentName as string);
     } catch (err) {
       setError('An error occurred during file upload. Please try again.');
       console.error(err);

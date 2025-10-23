@@ -213,6 +213,19 @@ const generateImage = async (prompt: string) => {
   }
 };
 
+const createEmail = async (context: string, recipients: string, sender: string, prompt: string) => {
+  const response = await axios.post(`${API_URL}/email/`, { context, recipients, sender, prompt }, {
+    headers: {
+      Authorization: localStorage.getItem("apiKey"),
+    },
+  });
+  if (response.status === 200) {
+    return response.data;
+  } else {
+    throw new Error("Failed to create email");
+  }
+};
+
 const services = {
   postPrompt,
   postProofreader,
@@ -227,6 +240,7 @@ const services = {
   insertFile,
   handleResponseData,
   generateImage,
+  createEmail,
 };
 
 export default services;

@@ -48,6 +48,34 @@ const ApiPage: React.FC<ApiKeyPageProps> = ({ onKeySubmit }) => {
         <p className="text-center text-gray-600 mb-6">
           An API key is required to use the application's features. Please enter your key below to continue.
         </p>
+        
+        {/* Tutorial Section */}
+        <div className="text-sm text-gray-500 bg-gray-50 p-4 rounded-md border border-gray-200 mb-6">
+          <h2 className="font-semibold text-gray-700 mb-2">How to get your Google AI API Key:</h2>
+          <ol className="list-decimal list-inside space-y-1">
+            <li>
+              Go to{" "}
+              <a
+                href="https://aistudio.google.com/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-blue-600 hover:underline"
+              >
+                Google AI Studio
+              </a> and sign in.
+            </li>
+            <li>
+              Click on the <strong>"Get API key"</strong> button, usually found in the top left menu.
+            </li>
+            <li>
+              Click <strong>"Create API key in new project"</strong>.
+            </li>
+            <li>
+              Copy the generated API key and paste it into the input field below.
+            </li>
+          </ol>
+        </div>
+
         <div className="mb-4">
           <input
             type="password"
@@ -68,6 +96,7 @@ const ApiPage: React.FC<ApiKeyPageProps> = ({ onKeySubmit }) => {
       </div>
     </div>
   );
+
 };
 
 export default ApiPage;

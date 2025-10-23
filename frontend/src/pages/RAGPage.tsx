@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import ReactMarkdown from 'react-markdown';
 import services from '../services/services';
 
-const RAGPage: React.FC = () => {
+const RAGPage: React.FC<{documentName: string}> = ({documentName}) => {
   const [messages, setMessages] = useState<{ text: string; user: 'me' | 'bot' }[]>([]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -41,6 +41,8 @@ const RAGPage: React.FC = () => {
   };
 
   return (
+    <section className="text-gray-800 p-6">
+      <h3 className="font-bold mb-4">Current Document : {documentName}</h3>
     <div className="flex flex-col h-full relative">
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute w-[800px] h-[800px] bg-blue-300/20 rounded-full blur-3xl -top-1/4 -right-1/4"></div>
@@ -90,6 +92,7 @@ const RAGPage: React.FC = () => {
         </button>
       </div>
     </div>
+    </section>
   );
 };
 

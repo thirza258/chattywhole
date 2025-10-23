@@ -1,4 +1,4 @@
-import React from 'react';
+import React from "react";
 import ReactMarkdown from "react-markdown";
 
 interface SidebarProps {
@@ -12,19 +12,41 @@ interface SidebarProps {
   }[];
 }
 
-const Sidebar: React.FC<SidebarProps> = ({ selectedTool, setSelectedTool, history }) => {
+const Sidebar: React.FC<SidebarProps> = ({
+  selectedTool,
+  setSelectedTool,
+  history,
+}) => {
   const tools = [
-    "Prompt",
-    "Proofreader", 
-    "Rewriter",
-    "Summarizer",
-    "Translator",
-    "Writer",
-    "Copywriting",
-    "Explainer",
-    "Document AI",
-    "Image Generation",
-    "Coming soon..."
+    {
+      name: "Gemini Tools",
+      tools: [
+        "Prompt",
+        "Proofreader",
+        "Rewriter",
+        "Summarizer",
+        "Translator",
+        "Writer",
+        "Copywriting",
+        "Explainer",
+        "Document AI",
+        "Image Generation",
+        "Email Builder",
+        "Coming soon...",
+      ],
+    },
+    {
+      name: "Transformers Tools",
+      tools: ["Coming soon..."],
+    },
+    {
+      name: "Machine Learning Tools",
+      tools: ["Coming soon..."],
+    },
+    {
+      name: "OpenAI Tools",
+      tools: ["Coming soon..."],
+    },
   ];
 
   return (
@@ -32,22 +54,34 @@ const Sidebar: React.FC<SidebarProps> = ({ selectedTool, setSelectedTool, histor
       <div className="flex-shrink-0">
         <h2 className="mb-4 text-xl font-semibold">Tools</h2>
         <div className="max-h-48 overflow-y-auto">
-          <ul className="grid grid-cols-2 gap-2">
-            {tools.map((tool) => (
-              <li key={tool} className="mb-2">
-                <a
-                  href="#"
-                  className={`block p-2 rounded hover:bg-gray-300 ${selectedTool === tool ? "font-bold bg-gray-300" : ""}`}
-                  onClick={(e) => {
-                    e.preventDefault();
-                    setSelectedTool(tool);
-                  }}
-                >
-                  {tool}
-                </a>
-              </li>
-            ))}
-          </ul>
+          {tools.map((toolGroup) => (
+            <div key={toolGroup.name} className="mb-4">
+              <details className="group">
+                <summary className="flex justify-between items-center cursor-pointer  font-medium text-gray-700 mb-2 hover:bg-gray-300 p-2 rounded">
+                  {toolGroup.name}
+                  <span className="transition group-open:rotate-180">▼</span>
+                </summary>
+                <ul className="pl-4 text-sm">
+                  {toolGroup.tools.map((tool) => (
+                    <li key={tool} className="mb-2">
+                      <a
+                        href="#"
+                        className={`block p-2 rounded hover:bg-gray-300 ${
+                          selectedTool === tool ? "font-bold bg-gray-300" : ""
+                        }`}
+                        onClick={(e) => {
+                          e.preventDefault();
+                          setSelectedTool(tool);
+                        }}
+                      >
+                        {tool}
+                      </a>
+                    </li>
+                  ))}
+                </ul>
+              </details>
+            </div>
+          ))}
         </div>
         <hr className="my-4 border-t-2 border-gray-400" />
         <h2 className="mb-4 text-xl font-semibold">History</h2>
@@ -65,9 +99,9 @@ const Sidebar: React.FC<SidebarProps> = ({ selectedTool, setSelectedTool, histor
                   <strong>Prompt:</strong> {entry.prompt.slice(0, 100)}
                 </div>
                 <div>
-                  <strong>Response:</strong> <ReactMarkdown>{entry.response.slice(0, 100)}</ReactMarkdown>
+                  <strong>Response:</strong>{" "}
+                  <ReactMarkdown>{entry.response.slice(0, 100)}</ReactMarkdown>
                 </div>
-              
               </div>
               <p className="text-xs text-gray-500 mt-2 text-right">
                 {new Date(entry.created_at).toLocaleString()}
