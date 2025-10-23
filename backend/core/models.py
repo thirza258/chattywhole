@@ -14,6 +14,7 @@ class ChatRecord(models.Model):
         ('explainer', 'Explainer'),
         ('copywriting', 'Copywriting'),
         ('document_ai', 'Document AI'),
+        ('email_generator', 'Email Generator'),
         ('rag_chat', 'RAG Chat'),
     ]
 

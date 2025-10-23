@@ -1,6 +1,6 @@
 from django.urls import path
 from .views import PromptView, ProofreaderView, SummarizerView, TranslatorView, WriterView, RewriterView, ApiKeyCheckView, HistoryView
-from .views import CopyWritingView, ImageGeneratorView, ExplainerView, PDFUploadRAGView, RAGChatView
+from .views import CopyWritingView, ImageGeneratorView, ExplainerView, PDFUploadRAGView, RAGChatView, EmailGeneratorView
 
 urlpatterns = [
     path("prompt/", PromptView.as_view(), name="prompt"),
@@ -16,4 +16,5 @@ urlpatterns = [
     path("rag-chat/", RAGChatView.as_view(), name="rag-chat"),
     path("api-key-check/", ApiKeyCheckView.as_view(), name="api-key-check"),
     path("history/", HistoryView.as_view(), name="history"),
+    path("email/", EmailGeneratorView.as_view(), name="email"),
 ]

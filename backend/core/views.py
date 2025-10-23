@@ -14,6 +14,9 @@ logger = logging.getLogger(__name__)
 
 class ApiKeyCheckView(APIView):
     def get(self, request):
+        """
+        Checks if the API key is valid.
+        """
         api_key = request.headers.get('Authorization')
         if not api_key:
             return Response({
@@ -23,16 +26,13 @@ class ApiKeyCheckView(APIView):
             }, status=status.HTTP_401_UNAUTHORIZED)
 
         try:
-            # Initialize Gemini client
             client = genai.Client(api_key=api_key)
 
-            # Try a simple test generation
             response = client.models.generate_content(
                 model="gemini-2.5-flash-lite",
                 contents="test"
             )
 
-            # If request succeeded, assume key is valid
             return Response({
                 "status": status.HTTP_200_OK,
                 "message": "API key is valid",
@@ -40,18 +40,14 @@ class ApiKeyCheckView(APIView):
             }, status=status.HTTP_200_OK)
 
         except Exception as e:
-            # Log and inspect the error
             logger.error(f"API key validation failed: {e}")
 
-            # Detect invalid key from error message
             if "API key not valid" in str(e) or "API_KEY_INVALID" in str(e):
                 return Response({
                     "status": status.HTTP_401_UNAUTHORIZED,
                     "message": "Invalid API key",
                     "data": False
                 }, status=status.HTTP_401_UNAUTHORIZED)
-
-            # For any other errors
             return Response({
                 "status": status.HTTP_400_BAD_REQUEST,
                 "message": f"Error: {str(e)}",
@@ -954,6 +950,111 @@ class ImageGeneratorView(APIView):
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
 
+class EmailGeneratorView(APIView):
+    """
+    API View for generating an email from a text prompt using the Gemini API.
+    """
+    def generate_response(self, prompt: str, api_key: str) -> str:
+        """
+        Generates an email from a text prompt using the Gemini API.
+        """
+        try:
+            client = genai.Client(api_key=api_key)
+            model = "gemini-2.5-flash-lite"
+            
+            contents = [
+                genai.types.Content(
+                    role="user",
+                    parts=[
+                        genai.types.Part.from_text(text=prompt),
+                    ],
+                ),
+            ]
+            generate_content_config = genai.types.GenerateContentConfig(
+                thinking_config=types.ThinkingConfig(
+                    thinking_budget=-1,
+                ),
+                response_mime_type="application/json",
+                response_schema=genai.types.Schema(
+                    type=genai.types.Type.OBJECT,
+                    required=["response"],
+                    properties={
+                        "response": genai.types.Schema(
+                            type=genai.types.Type.STRING,
+                        ),
+                    },
+                ),
+                system_instruction=[
+                    genai.types.Part.from_text(text="You are a skilled email generator. Your task is to generate an email from a text prompt."),
+                ],
+            )
+            response = client.models.generate_content(
+                model=model,
+                contents=contents,
+                config=generate_content_config,
+            )
+            return response.text
+        except Exception as e:
+            logger.error(f"An error occurred during Gemini API call in EmailGeneratorView: {e}")
+            raise
+
+    def post(self, request, *args, **kwargs):
+        """
+        Handles POST requests to generate an email.
+        """
+        context = request.data.get("context")
+        recipients = request.data.get("recipients")
+        sender = request.data.get("sender")
+        prompt = request.data.get("prompt")
+
+        api_key = request.headers.get("Authorization")
+        api_key = strip_authentication_header(api_key)
+        prompt = f"""
+            You are a skilled email generator. Your task is to generate an email from a text prompt.
+            The email should be generated based on the following context:
+            {context}
+            The recipients of the email are:
+            {recipients}
+            The sender of the email is:
+            {sender}
+            The email should be generated based on the following prompt:
+            {prompt}
+        """
+        if not prompt:
+            return Response(
+                {"error": "A 'context' is required in the request body."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        if not recipients:
+            return Response(
+                {"error": "A 'recipients' is required in the request body."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        if not sender:
+            return Response(
+                {"error": "A 'sender' is required in the request body."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        if not prompt:
+            return Response(
+                {"error": "A 'prompt' is required in the request body."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        try:
+            response_data = self.generate_response(prompt=prompt, api_key=api_key)
+            ChatRecord.objects.create(method='email_generation', prompt=prompt, response=response_data, api_key=api_key)
+            return Response({
+                "status": 200,
+                "message": "success",
+                "data": response_data
+            }, status=status.HTTP_200_OK)
+        except Exception as e:
+            return Response({
+                "status": 500,
+                "message": "error",
+                "data": "An unexpected error occurred while processing your request." + str(e)
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
 class HistoryView(APIView):
     """
     API View for retrieving history of prompts.
@@ -985,5 +1086,3 @@ class HistoryView(APIView):
                 "data": "An unexpected error occurred while processing your request." + str(e)
             }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
             
-
-        
