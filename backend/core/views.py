@@ -6,7 +6,7 @@ from google.genai import types
 import logging
 from core.helper import strip_authentication_header, extract_text_from_pdf, save_file
 from core.models import ChatRecord
-from core.apps import rag_index
+from rag_service.rag_service import RAGIndex
 import base64
 import mimetypes
 
@@ -750,7 +750,11 @@ class PDFUploadRAGView(APIView):
             )
 
         try:
+            api_key = request.headers.get('Authorization')
+            api_key = strip_authentication_header(api_key)
             text_content = extract_text_from_pdf(pdf_file)
+            rag_index = RAGIndex(api_key=api_key)
+            rag_index.delete_all_chunks()
             rag_index.add_document(pdf_file.name, text_content)
             if not text_content:
                 return Response(
@@ -783,6 +787,7 @@ class RAGChatView(APIView):
     """
     def generate_response(self, prompt: str, api_key: str, chunks: list) -> str:
         try:
+           
             client = genai.Client(api_key=api_key)
             model = "gemini-2.5-flash-lite"
             contents = [
@@ -836,6 +841,7 @@ class RAGChatView(APIView):
                 status=status.HTTP_400_BAD_REQUEST
             )
         try:
+            rag_index = RAGIndex(api_key=api_key)
             chunks = rag_index.retrieve_documents(prompt, k=3)
             
             response_data = self.generate_response(prompt=prompt, api_key=api_key, chunks=chunks)

@@ -15,7 +15,7 @@ services:
   backend:
     build: ./backend
     container_name: nevatal_backend
-    command: python manage.py runserver 0.0.0.0:8000
+    command: /app/entrypoint.sh
     volumes:
       - ./backend:/app
     ports:

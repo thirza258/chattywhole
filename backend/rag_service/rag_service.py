@@ -7,8 +7,8 @@ from core.models import RagChunk
 
 
 class RAGIndex:
-    def __init__(self):
-        self.client = genai.Client()
+    def __init__(self, api_key: str):
+        self.client = genai.Client(api_key=api_key)
         self.model_name = "gemini-embedding-001"
 
         self.faiss_index = None

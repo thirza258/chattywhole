@@ -3,7 +3,6 @@ import io
 from typing import Optional
 import os
 from nevatal_settings import settings
-from core.apps import rag_index
 
 def strip_authentication_header(header: str) -> str:
     try:
@@ -25,7 +24,7 @@ def extract_text_from_pdf(pdf_file) -> Optional[str]:
     """
     try:
         pdf_file.seek(0)
-        rag_index.delete_all_chunks()
+        
 
         pdf_reader = PyPDF2.PdfReader(io.BytesIO(pdf_file.read()))
 

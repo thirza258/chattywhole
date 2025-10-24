@@ -173,21 +173,26 @@ const handleResponseData = (response: string) => {
 }
 
 const insertFile = async (file: File) => {
-  const response = await axios.post(`${API_URL}/file/`, { file }, {
+  const formData = new FormData();
+  formData.append("file", file);
+
+  const response = await axios.post(`${API_URL}/pdf-upload/`, formData, {
     headers: {
       Authorization: localStorage.getItem("apiKey"),
     },
   });
-    
+    console.log("File inserted successfully");
   if (response.status === 200) {
+    console.log("File inserted successfully");
     return response.data;
   } else {
+    console.log("Failed to insert file");
     throw new Error("Failed to insert file");
   }
 }
 
 const chatWithRAG = async (prompt: string) => {
-  const response = await axios.post(`${API_URL}/rag/`, { prompt }, {
+  const response = await axios.post(`${API_URL}/rag-chat/`, { prompt }, {
     headers: {
       Authorization: localStorage.getItem("apiKey"),
     },

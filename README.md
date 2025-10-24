@@ -13,6 +13,8 @@ Nevatal is a comprehensive AI application that combines multiple AI functionalit
 - Copywriting assistance
 - Document AI processing
 - RAG (Retrieval Augmented Generation) chat functionality
+- Nano Banana Image Generation
+- Email Builder AI
 
 ## Getting Started
 
@@ -36,7 +38,7 @@ Nevatal is a comprehensive AI application that combines multiple AI functionalit
 
 3. Access the application:
    - Frontend: http://localhost:5173
-   - Backend API: http://localhost:8000
+   - Backend API: http://localhost
 
 ### Development Setup
 

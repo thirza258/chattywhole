@@ -11,15 +11,28 @@ const RAGPage: React.FC<{documentName: string}> = ({documentName}) => {
     if (input.trim() === '' || isLoading) return;
 
     const userInput = input;
-    setMessages((prevMessages) => [...prevMessages, { text: userInput, user: 'me' }]);
+    setMessages((prevMessages) => [
+      ...prevMessages,
+      { text: userInput, user: 'me' },
+    ]);
     setInput('');
     setIsLoading(true);
 
     try {
       const response = await services.chatWithRAG(userInput);
-      const botResponse = response.response || 'Sorry, I could not find an answer.';
+      if (!response) throw new Error("No response received");
 
-      setMessages((prevMessages) => [...prevMessages, { text: botResponse, user: 'bot' }]);
+      if (typeof response.data === 'string' && response.data.charAt(0) === '{') {
+        const parsedData = JSON.parse(response.data);
+        if (parsedData.response) {
+          response.data = parsedData.response;
+        }
+      }
+
+      setMessages((prevMessages) => [
+        ...prevMessages,
+        { text: response.data, user: 'bot' },
+      ]);
     } catch (error) {
       console.error('Error fetching response:', error);
       setMessages((prevMessages) => [
@@ -41,8 +54,8 @@ const RAGPage: React.FC<{documentName: string}> = ({documentName}) => {
   };
 
   return (
-    <section className="text-gray-800 p-6">
-      <h3 className="font-bold mb-4">Current Document : {documentName}</h3>
+   
+      
     <div className="flex flex-col h-full relative">
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute w-[800px] h-[800px] bg-blue-300/20 rounded-full blur-3xl -top-1/4 -right-1/4"></div>
@@ -73,26 +86,28 @@ const RAGPage: React.FC<{documentName: string}> = ({documentName}) => {
         )}
       </div>
 
-      <div className="flex-shrink-0 flex p-4 bg-white border-t relative">
-        <input
-          type="text"
-          className="flex-grow border-y border-l rounded-l-md px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-          value={input}
-          onChange={(e) => setInput(e.target.value)}
-          onKeyDown={handleKeyDown}
-          placeholder="Ask a question about the document"
-          disabled={isLoading}
-        />
-        <button
-          className="bg-blue-500 text-white px-6 py-2 rounded-r-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-blue-300"
-          onClick={sendMessage}
-          disabled={isLoading}
-        >
-          Send
-        </button>
+      <div className="flex-shrink-0 flex flex-col p-4 bg-white border-t relative">
+        <span className="text-sm text-gray-500 mb-2">Current Document: {documentName}</span>
+        <div className="flex">
+          <input
+            type="text"
+            className="flex-grow border-y border-l rounded-l-md px-4 py-3 text-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            onKeyDown={handleKeyDown}
+            placeholder="Ask a question about the document"
+            disabled={isLoading}
+          />
+          <button
+            className="bg-blue-500 text-white px-6 py-2 rounded-r-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-blue-300"
+            onClick={sendMessage}
+            disabled={isLoading}
+          >
+            Send
+          </button>
+        </div>
       </div>
     </div>
-    </section>
   );
 };
 

@@ -57,7 +57,7 @@ const Sidebar: React.FC<SidebarProps> = ({
           {tools.map((toolGroup) => (
             <div key={toolGroup.name} className="mb-4">
               <details className="group">
-                <summary className="flex justify-between items-center cursor-pointer  font-medium text-gray-700 mb-2 hover:bg-gray-300 p-2 rounded">
+                <summary className="flex justify-between items-center cursor-pointer font-medium text-gray-700 mb-2 hover:bg-gray-300 p-2 rounded border-b border-gray-300">
                   {toolGroup.name}
                   <span className="transition group-open:rotate-180">▼</span>
                 </summary>
@@ -66,7 +66,7 @@ const Sidebar: React.FC<SidebarProps> = ({
                     <li key={tool} className="mb-2">
                       <a
                         href="#"
-                        className={`block p-2 rounded hover:bg-gray-300 ${
+                        className={`block p-2 rounded hover:bg-gray-300 cursor-pointer border-b border-gray-300 ${
                           selectedTool === tool ? "font-bold bg-gray-300" : ""
                         }`}
                         onClick={(e) => {
