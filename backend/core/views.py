@@ -315,7 +315,7 @@ class TranslatorView(APIView):
     of the provided SummarizerView.
     """
 
-    def generate_response(self, prompt: str, source_language: str = "English", target_language: str = "English", api_key: str = "") -> str:
+    def generate_response(self, api_key: str, prompt: str, source_language: str = "English", target_language: str = "English") -> str:
         """
         Generates a translated response using the Gemini API.
 
@@ -381,7 +381,7 @@ class TranslatorView(APIView):
             )
 
         try:
-            translation_text = self.generate_response(prompt=prompt, target_language=target_language, source_language=source_language)
+            translation_text = self.generate_response(api_key=api_key, prompt=prompt, target_language=target_language, source_language=source_language)
             ChatRecord.objects.create(method='translator', prompt=prompt, response=translation_text, api_key=api_key)
           
             return Response({

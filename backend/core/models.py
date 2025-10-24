@@ -16,6 +16,7 @@ class ChatRecord(models.Model):
         ('document_ai', 'Document AI'),
         ('email_generator', 'Email Generator'),
         ('rag_chat', 'RAG Chat'),
+        ('email_generation', 'Email Generation'),
     ]
 
     method = models.CharField(max_length=255, choices=METHOD_CHOICES, default='prompt')

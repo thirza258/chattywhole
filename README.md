@@ -37,8 +37,8 @@ Nevatal is a comprehensive AI application that combines multiple AI functionalit
    ```
 
 3. Access the application:
-   - Frontend: http://localhost:5173
-   - Backend API: http://localhost
+   - Frontend: http://localhost
+   - Backend API: http://localhost:8000
 
 ### Development Setup
 
