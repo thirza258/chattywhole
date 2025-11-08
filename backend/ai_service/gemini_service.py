@@ -123,3 +123,135 @@ def generate_image(self, prompt: str, api_key: str):
     except Exception as e:
         logger.error(f"Error during image generation: {e}")
         raise
+
+def classify_text(category: str):
+    """Classifies the text into a given category."""
+    return {"status": "success", "classification_result": f"The text has been classified under the category: {category}"}
+
+def analyze_sentiment(sentiment: str, score: float):
+    """Analyzes the sentiment of the text."""
+    return {"status": "success", "sentiment_analysis": {"sentiment": sentiment, "confidence_score": score}}
+
+def determine_topic(topic: str, keywords: list[str]):
+    """Determines the main topic of the text and extracts key words."""
+    return {"status": "success", "topic_analysis": {"main_topic": topic, "keywords": keywords}}
+
+
+def process_text_with_function_calling_vertex(prompt: str, api_key: str):
+    """
+    Orchestrates the multi-turn conversation with Gemini for function calling
+    using the Vertex AI SDK (google.genai).
+    """
+    client = genai.Client(api_key=api_key)
+
+    tools = [
+        types.Tool(
+            function_declarations=[
+                types.FunctionDeclaration(
+                    name="classify_text",
+                    description="Use this function to classify text into a specific category like Technology, Finance, or Health.",
+                    parameters=types.Schema(
+                        type=types.Type.OBJECT,
+                        properties={
+                            "category": types.Schema(
+                                type=types.Type.STRING,
+                                description="The category to classify the text into.",
+                                enum=["Technology", "Finance", "Health", "General"]
+                            )
+                        },
+                        required=["category"]
+                    )
+                ),
+                types.FunctionDeclaration(
+                    name="analyze_sentiment",
+                    description="Use this function to analyze the sentiment of a piece of text.",
+                    parameters=types.Schema(
+                        type=types.Type.OBJECT,
+                        properties={
+                            "sentiment": types.Schema(
+                                type=types.Type.STRING,
+                                description="The sentiment of the text.",
+                                enum=["Positive", "Negative", "Neutral"]
+                            ),
+                            "score": types.Schema(
+                                type=types.Type.NUMBER,
+                                description="The confidence score of the sentiment analysis, from 0.0 to 1.0."
+                            )
+                        },
+                        required=["sentiment", "score"]
+                    )
+                ),
+                types.FunctionDeclaration(
+                    name="determine_topic",
+                    description="Use this function to find the main topic and important keywords in a text.",
+                    parameters=types.Schema(
+                        type=types.Type.OBJECT,
+                        properties={
+                            "topic": types.Schema(type=types.Type.STRING, description="The primary topic of the text."),
+                            "keywords": types.Schema(
+                                type=types.Type.ARRAY,
+                                items=types.Schema(type=types.Type.STRING),
+                                description="A list of 2-3 main keywords from the text."
+                            )
+                        },
+                        required=["topic", "keywords"]
+                    )
+                )
+            ]
+        )
+    ]
+
+    available_functions = {
+        "classify_text": classify_text,
+        "analyze_sentiment": analyze_sentiment,
+        "determine_topic": determine_topic,
+    }
+
+    model_name = "gemini-2.5-flash-lite"
+
+    contents = [types.Content(role="user", parts=[types.Part.from_text(text=prompt)])]
+    
+    config = types.GenerateContentConfig(tools=tools)
+
+    response = client.models.generate_content(
+        model=model_name,
+        contents=contents,
+        config=config,
+    )
+
+    try:
+        function_call = response.candidates[0].content.parts[0].function_call
+    except (IndexError, AttributeError):
+        return {
+            "natural_language_response": response.text,
+            "function_data": None
+        }
+
+    function_name = function_call.name
+    function_args = function_call.args
+
+    if function_name in available_functions:
+        function_to_call = available_functions[function_name]
+        args_dict = {key: value for key, value in function_args.items()}
+        function_response_data = function_to_call(**args_dict)
+
+        function_response_part = types.Part.from_function_response(
+            name=function_name,
+            response={"result": function_response_data}
+        )
+
+        contents.append(response.candidates[0].content)
+        contents.append(types.Content(parts=[function_response_part]))
+
+        final_response = client.models.generate_content(
+            model=model_name,
+            contents=contents,
+        )
+
+        return {
+            "natural_language_response": final_response.text,
+            "function_data": function_response_data
+        }
+    else:
+        logger.error(f"Model requested an unknown function: {function_name}")
+        raise ValueError(f"Model requested an unknown function: {function_name}")

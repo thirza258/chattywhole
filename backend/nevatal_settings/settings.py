@@ -49,7 +49,9 @@ INSTALLED_APPS = [
     "corsheaders",
     "drf_spectacular",
     "core",
-    "rag_service"
+    "rag_service",
+    "document_function",
+    "ai_service",
 ]
 
 SPECTACULAR_SETTINGS = {

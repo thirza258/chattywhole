@@ -465,7 +465,6 @@ class RAGChatView(APIView):
                 "data": "An unexpected error occurred while processing your request." + str(e)
             }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
        
-
 class ImageGeneratorView(APIView):
     """
     API View for generating an image from a text prompt using the Gemini API.
@@ -583,6 +582,214 @@ class EmailGeneratorView(APIView):
                 "message": "error",
                 "data": "An unexpected error occurred while processing your request." + str(e)
             }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+class CodeGeneratorView(APIView):
+    """
+    API View for generating code from a text prompt using the Gemini API.
+    """
+    def post(self, request, *args, **kwargs):
+        """
+        Handles POST requests to generate code.
+        """
+        prompt = request.data.get("prompt")
+        api_key = request.headers.get("Authorization")
+        api_key = strip_authentication_header(api_key)
+        if not prompt:
+            return Response(
+                {"error": "A 'prompt' is required in the request body."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        if not api_key:
+            return Response(
+                {"error": "Authorization header is required."},
+                status=status.HTTP_401_UNAUTHORIZED
+            )
+        try:
+            system_instruction_string = f"""
+            You are a skilled code generator. Your task is to generate code from a text prompt.
+            The code should be generated based on the following prompt:
+            """
+
+            response_data = generate_response(prompt=prompt, api_key=api_key, system_instruction_string=system_instruction_string)
+            ChatRecord.objects.create(method='code_generation', prompt=prompt, response=response_data, api_key=api_key)
+            return Response({
+                "status": 200,
+                "message": "success",
+                "data": response_data
+            }, status=status.HTTP_200_OK)
+        except Exception as e:
+            return Response({
+                "status": 500,
+                "message": "error",
+                "data": "An unexpected error occurred while processing your request." + str(e)
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+class CodeReviewerView(APIView):
+    """
+    API View for reviewing code from a text prompt using the Gemini API.
+    """
+    def post(self, request, *args, **kwargs):
+        """
+        Handles POST requests to review code.
+        """
+        prompt = request.data.get("prompt")
+        api_key = request.headers.get("Authorization")
+        api_key = strip_authentication_header(api_key)
+        
+        if not prompt:
+            return Response(
+                {"error": "A 'prompt' is required in the request body."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        if not api_key:
+            return Response(
+                {"error": "Authorization header is required."},
+                status=status.HTTP_401_UNAUTHORIZED
+            )
+        try:
+            system_instruction_string = f"""
+            You are a skilled code reviewer. Your task is to review the code and provide feedback.
+            The code should be reviewed based on the following prompt:
+            {prompt}
+            """
+            response_data = generate_response(prompt=prompt, api_key=api_key, system_instruction_string=system_instruction_string)
+            ChatRecord.objects.create(method='code_reviewer', prompt=prompt, response=response_data, api_key=api_key)
+            return Response({
+                "status": 200,
+                "message": "success",
+                "data": response_data
+            }, status=status.HTTP_200_OK)
+        except Exception as e:
+            return Response({
+                "status": 500,
+                "message": "error",
+                "data": "An unexpected error occurred while processing your request." + str(e)
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+class MeetingSummaryView(APIView):
+    """
+    API View for summarizing a meeting from a text prompt using the Gemini API.
+    """
+    def post(self, request, *args, **kwargs):
+        """
+        Handles POST requests to summarize a meeting.
+        """
+        prompt = request.data.get("prompt")
+        api_key = request.headers.get("Authorization")
+        api_key = strip_authentication_header(api_key)
+        if not prompt:
+            return Response(
+                {"error": "A 'prompt' is required in the request body."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        if not api_key:
+            return Response(
+                {"error": "Authorization header is required."},
+                status=status.HTTP_401_UNAUTHORIZED
+            )
+        try:
+            system_instruction_string = f"""
+            You are a skilled meeting summarizer. Your task is to summarize a meeting from a text prompt.
+            The meeting should be summarized based on the following prompt:
+            {prompt}
+            """
+            response_data = generate_response(prompt=prompt, api_key=api_key, system_instruction_string=system_instruction_string)
+            ChatRecord.objects.create(method='meeting_summary', prompt=prompt, response=response_data, api_key=api_key)
+            return Response({
+                "status": 200,
+                "message": "success",
+                "data": response_data
+            }, status=status.HTTP_200_OK)
+        except Exception as e:
+            return Response({
+                "status": 500,
+                "message": "error",
+                "data": "An unexpected error occurred while processing your request." + str(e)
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+class SocialMediaPostGeneratorView(APIView):
+    """
+    API View for generating a social media post from a text prompt using the Gemini API.
+    """
+    def post(self, request, *args, **kwargs):
+        """
+        Handles POST requests to generate a social media post.
+        """
+        prompt = request.data.get("prompt")
+        api_key = request.headers.get("Authorization")
+        api_key = strip_authentication_header(api_key)
+        if not prompt:
+            return Response(
+                {"error": "A 'prompt' is required in the request body."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        if not api_key:
+            return Response(
+                {"error": "Authorization header is required."},
+                status=status.HTTP_401_UNAUTHORIZED
+            )
+        try:
+            system_instruction_string = f"""
+            You are a skilled social media post generator. Your task is to generate a social media post from a text prompt.
+            The social media post should be generated based on the following prompt:
+            {prompt}
+            """
+            response_data = generate_response(prompt=prompt, api_key=api_key, system_instruction_string=system_instruction_string)
+            ChatRecord.objects.create(method='social_media_post_generation', prompt=prompt, response=response_data, api_key=api_key)
+            return Response({
+                "status": 200,
+                "message": "success",
+                "data": response_data
+            }, status=status.HTTP_200_OK)
+        except Exception as e:
+            return Response({
+                "status": 500,
+                "message": "error",
+                "data": "An unexpected error occurred while processing your request." + str(e)
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+class SentimentAnalyzerView(APIView):
+    """
+    API View for analyzing the sentiment of a text prompt using the Gemini API.
+    """
+    def post(self, request, *args, **kwargs):
+        """
+        Handles POST requests to analyze the sentiment of a text prompt.
+        """
+        prompt = request.data.get("prompt")
+        api_key = request.headers.get("Authorization")
+        api_key = strip_authentication_header(api_key)
+        if not prompt:
+            return Response(
+                {"error": "A 'prompt' is required in the request body."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        if not api_key:
+            return Response(
+                {"error": "Authorization header is required."},
+                status=status.HTTP_401_UNAUTHORIZED
+            )
+        try:
+            system_instruction_string = f"""
+            You are a skilled sentiment analyzer. Your task is to analyze the sentiment of a text prompt.
+            The sentiment should be analyzed based on the following prompt:
+            {prompt}
+            """
+            response_data = generate_response(prompt=prompt, api_key=api_key, system_instruction_string=system_instruction_string)
+            ChatRecord.objects.create(method='sentiment_analysis', prompt=prompt, response=response_data, api_key=api_key)
+            return Response({
+                "status": 200,
+                "message": "success",
+                "data": response_data
+            }, status=status.HTTP_200_OK)
+        except Exception as e:
+            return Response({
+                "status": 500,
+                "message": "error",
+                "data": "An unexpected error occurred while processing your request." + str(e)
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
 
 class HistoryView(APIView):
     """
