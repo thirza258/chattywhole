@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import services from '../services/services';
+import services from '../../services/services';
 
 interface InsertFileProps {
   onUploadSuccess: (documentName: string) => void;

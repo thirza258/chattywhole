@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import ReactMarkdown from 'react-markdown';
-import services from '../services/services';
+import services from '../../services/services';
 
 const WriterPage: React.FC = () => {
   const [inputText, setInputText] = useState<string>('');

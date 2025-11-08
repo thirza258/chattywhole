@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import services from '../services/services';
+import services from '../../services/services';
 import ReactMarkdown from 'react-markdown';
 
 const SummarizerPage: React.FC = () => {
