@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import ReactMarkdown from 'react-markdown';
-import services from '../services/services';
+import services from '../../services/services';
 
 const RAGPage: React.FC<{documentName: string}> = ({documentName}) => {
   const [messages, setMessages] = useState<{ text: string; user: 'me' | 'bot' }[]>([]);

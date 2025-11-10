@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import services from '../services/services';
+import services from '../../services/services';
 
 const ImaGenPage: React.FC = () => {
   const [prompt, setPrompt] = useState<string>('');

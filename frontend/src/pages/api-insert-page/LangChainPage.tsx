@@ -1,12 +1,12 @@
 import React, { useState } from 'react';
 import axios from 'axios';
-import { API_URL } from '../constant';
+import { API_URL } from '../../constant';
 
-interface ApiKeyPageProps {
+interface LangChainPageProps {
   onKeySubmit: () => void;
 }
 
-const ApiPage: React.FC<ApiKeyPageProps> = ({ onKeySubmit }) => {
+const LangChainPage: React.FC<LangChainPageProps> = ({ onKeySubmit }) => {
   const [apiKey, setApiKey] = useState<string>('');
   const [error, setError] = useState<string>('');
 
@@ -16,13 +16,13 @@ const ApiPage: React.FC<ApiKeyPageProps> = ({ onKeySubmit }) => {
       return;
     }
 
-    axios.get(`${API_URL}/api-key-check`, {
+    axios.get(`${API_URL}/langchain/api-key-check`, {
       headers: {
         Authorization: apiKey,
       },
     }).then((response) => {
     if (response.status === 200) {
-      localStorage.setItem('apiKey', apiKey);
+      localStorage.setItem('langchainApiKey', apiKey);
       setError('');
       onKeySubmit();
     } else {
@@ -99,4 +99,4 @@ const ApiPage: React.FC<ApiKeyPageProps> = ({ onKeySubmit }) => {
 
 };
 
-export default ApiPage;
+export default LangChainPage;

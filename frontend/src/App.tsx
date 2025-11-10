@@ -4,21 +4,21 @@ import { v4 as uuidv4 } from 'uuid';
 import services from './services/services';
 import NavBar from './components/NavBar';
 import Sidebar from './components/Sidebar';
-import AboutPage from './pages/AboutPage';
+import AboutPage from './pages/about/AboutPage';
+import ApiKeyPage from './pages/api-insert-page/ApiPage';
 
-import ApiKeyPage from './pages/ApiPage';
-import PromptPage from './pages/PromptPage';
-import ProofreaderPage from './pages/ProofreaderPage';
-import RewriterPage from './pages/RewriterPage';
-import SummarizerPage from './pages/SummarizerPage';
-import TranslatorPage from './pages/TranslatorPage';
-import WriterPage from './pages/WriterPage';
-import CopyWritingPage from './pages/CopyWritingPage';
-import ExplainerPage from './pages/ExplainerPage';
-import RAGPage from './pages/RAGPage';
-import InsertFile from './pages/InsertFile';
-import ImaGenPage from './pages/ImaGenPage';
-import EmailBuilderPage from './pages/EmailBuilderPage';
+import PromptPage from './pages/ai-service-page/PromptPage';
+import ProofreaderPage from './pages/ai-service-page/ProofreaderPage';
+import RewriterPage from './pages/ai-service-page/RewriterPage';
+import SummarizerPage from './pages/ai-service-page/SummarizerPage';
+import TranslatorPage from './pages/ai-service-page/TranslatorPage';
+import WriterPage from './pages/ai-service-page/WriterPage';
+import CopyWritingPage from './pages/ai-service-page/CopyWritingPage';
+import ExplainerPage from './pages/ai-service-page/ExplainerPage';
+import RAGPage from './pages/ai-service-page/RAGPage';
+import InsertFile from './pages/insert-page/InsertFile';
+import ImaGenPage from './pages/ai-service-page/ImaGenPage';
+import EmailBuilderPage from './pages/ai-service-page/EmailBuilderPage';
 
 function App() {
   const [hasApiKey, setHasApiKey] = useState(false);
